@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include <event2/dns.h>
 #ifndef _WIN32
@@ -457,13 +458,15 @@ write_logfile_prologue(int logfile)
 int
 log_set_method(int method, const char *filename)
 {
-  logging_method = method;
   if (method == LOG_METHOD_FILE) {
     if (open_and_set_obfsproxy_logfile(filename) < 0)
       return -1;
     if (write_logfile_prologue(logging_logfile) < 0)
       return -1;
   }
+
+  logging_method = method;
+
   return 0;
 }
 
@@ -543,10 +546,10 @@ logv(int severity, const char *format, va_list ap)
   if (logging_method == LOG_METHOD_STDERR)
     fprintf(stderr, "%s", buf);
   else if (logging_method == LOG_METHOD_FILE) {
-    obfs_assert(logging_logfile);
-    obfs_assert(!(write(logging_logfile, buf, strlen(buf)) < 0));
+    assert(logging_logfile >= 0);
+    assert(!(write(logging_logfile, buf, strlen(buf)) < 0));
   } else
-    obfs_assert(0);
+    assert(0);
 }
 
 /**** Public logging API. ****/
