@@ -156,6 +156,10 @@ void close_obfsproxy_logfile(void);
 void log_error(const char *format, ...)
   ATTR_PRINTF_1 ATTR_NORETURN;
 
+/** Fatal errors: the program cannot continue and will abort */
+void log_error_abort(const char *format, ...)
+  ATTR_PRINTF_1 ATTR_NORETURN;
+
 /** Warn-level severity: for messages that only appear when something
     has gone wrong. */
 void log_warn(const char *format, ...)
@@ -176,16 +180,16 @@ void log_debug_raw(const char *format, va_list ap);
 /** Assertion checking.  We don't ever compile assertions out, and we
     want precise control over the error messages, so we use our own
     assertion macros. */
-#define obfs_assert(expr)                               \
-  do {                                                  \
-    if (!(expr))                                        \
-      log_error("assertion failure at %s:%d: %s",       \
-                __FILE__, __LINE__, #expr);             \
+#define obfs_assert(expr)                                     \
+  do {                                                        \
+    if (!(expr))                                              \
+      log_error_abort("assertion failure at %s:%d: %s",       \
+                      __FILE__, __LINE__, #expr);             \
   } while (0)
 
-#define obfs_abort()                                    \
-  do {                                                  \
-    log_error("aborted at %s:%d", __FILE__, __LINE__);  \
+#define obfs_abort()                                            \
+  do {                                                          \
+    log_error_abort("aborted at %s:%d", __FILE__, __LINE__);    \
   } while (0)
 
 #endif

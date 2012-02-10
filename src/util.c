@@ -567,6 +567,19 @@ log_error(const char *format, ...)
   exit(1);
 }
 
+/** Public function for logging an error message then aborting. */
+void
+log_error_abort(const char *format, ...)
+{
+  va_list ap;
+  va_start(ap,format);
+
+  logv(LOG_SEV_ERR, format, ap);
+
+  va_end(ap);
+  abort();
+}
+
 /** Public function for logging a warning. */
 void
 log_warn(const char *format, ...)
