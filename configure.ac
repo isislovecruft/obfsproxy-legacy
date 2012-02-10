@@ -3,12 +3,6 @@ AC_INIT([obfsproxy], [0.0])
 AC_CONFIG_SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([foreign nostdinc])
 
-dnl The stock definition of AC_INCLUDES_DEFAULT performs a whole bunch
-dnl of completely unnecessary checks *even if* you override its
-dnl mostly-useless default header list at invocation time.
-dnl Replace it with a version that does nothing unless requested.
-m4_pushdef([AC_INCLUDES_DEFAULT], [$1])
-
 ### Programs ###
 
 AC_PROG_CC
@@ -49,6 +43,7 @@ LIBS="$save_LIBS"
 
 AC_C_INLINE
 AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(size_t)
 
 ### Output ###
 
