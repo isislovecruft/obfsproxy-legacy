@@ -50,6 +50,21 @@ LIBS="$save_LIBS"
 AC_C_INLINE
 AC_CHECK_SIZEOF(int)
 
+dnl check for working va_copy. It could be a function or a macro.
+AC_MSG_CHECKING([whether we have va_copy])
+AC_CACHE_VAL(obfs_cv_have_vacopy,
+  AC_TRY_LINK([#include <stdarg.h>], [
+    va_list ap, ap2;
+    va_copy(ap, ap2);
+  ], [obfs_cv_have_vacopy=true],
+     [obfs_cv_have_vacopy=false]))
+if test "$obfs_cv_have_vacopy" = true; then
+  AC_DEFINE(HAVE_VA_COPY, 1, [True if this platform has the standard va_copy macro])
+  AC_MSG_RESULT(yes)
+else
+  AC_MSG_RESULT(no)
+fi
+
 ### Output ###
 
 AC_CONFIG_FILES([Makefile])

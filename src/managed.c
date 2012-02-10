@@ -142,16 +142,23 @@ log_proxy_env(managed_proxy_t *proxy)
 static void
 print_protocol_line(const char *format, ...)
 {
-  va_list ap;
+  va_list ap, ap2;
   va_start(ap,format);
+#ifdef HAVE_VA_COPY
+  va_copy(ap2, ap);
+#else
+  memcpy(&ap2, &ap, sizeof(ap));
+#endif
+
   vprintf(format, ap);
   fflush(stdout);
 
   /* log the protocol message */
   log_debug("We sent:");
-  log_debug_raw(format, ap);
+  log_debug_raw(format, ap2);
 
   va_end(ap);
+  va_end(ap2);
 }
 
 /**
