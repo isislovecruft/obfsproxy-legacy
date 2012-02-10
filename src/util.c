@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <assert.h>
+#include <time.h>
 
 #include <event2/dns.h>
 #ifndef _WIN32
@@ -436,21 +437,6 @@ close_obfsproxy_logfile(void)
 }
 
 /**
-   Writes a small prologue in the logfile 'fd' that mentions the
-   obfsproxy version and helps separate log instances.
-
-   Returns 0 on success, -1 on failure.
-*/
-static int
-write_logfile_prologue(int logfile)
-{
-  static const char prologue[] = "\nBrand new obfsproxy log:\n";
-  if (write(logfile, prologue, strlen(prologue)) != strlen(prologue))
-    return -1;
-  return 0;
-}
-
-/**
    Sets the global logging 'method' and also sets and open the logfile
    'filename' in case we want to log into a file.
    It returns 1 on success and -1 on fail.
@@ -461,11 +447,10 @@ log_set_method(int method, const char *filename)
   if (method == LOG_METHOD_FILE) {
     if (open_and_set_obfsproxy_logfile(filename) < 0)
       return -1;
-    if (write_logfile_prologue(logging_logfile) < 0)
-      return -1;
   }
 
   logging_method = method;
+  log_info("\nStarting.");
 
   return 0;
 }
@@ -519,9 +504,16 @@ logv(int severity, const char *format, va_list ap)
   int r=0;
   char buf[MAX_LOG_ENTRY];
 
+  time_t now = time(NULL);
+  struct tm *nowtm = localtime(&now);
+  char ts[ISO_TIME_LEN + 2];
   size_t buflen = MAX_LOG_ENTRY-2;
 
-  r = obfs_snprintf(buf, buflen, "[%s] ", sev_to_string(severity));
+  if (strftime(ts, sizeof(ts), "%Y-%m-%d %H:%M:%S ", nowtm) !=
+      ISO_TIME_LEN + 1)
+    ts[0] = '\0';
+  r = obfs_snprintf(buf, buflen, "%s[%s] ", ts,
+                    sev_to_string(severity));
   if (r < 0)
     n = strlen(buf);
   else

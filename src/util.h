@@ -149,6 +149,10 @@ int obfs_snprintf(char *str, size_t size,
 /** We don't want no logs. */
 #define LOG_METHOD_NULL 3
 
+/** Length of the date-time format that we use in log messages, which is
+    "yyyy-mm-dd hh:mm:ss" (without quotes). */
+#define ISO_TIME_LEN 19
+
 /** Set the log method, and open the logfile 'filename' if appropriate. */
 int log_set_method(int method, const char *filename);
 
