@@ -450,7 +450,7 @@ log_set_method(int method, const char *filename)
   }
 
   logging_method = method;
-  log_info("\nStarting.");
+  log_info("Starting.");
 
   return 0;
 }
