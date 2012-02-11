@@ -17,6 +17,12 @@ fi
 
 PKG_PROG_PKG_CONFIG
 
+### Headers ###
+
+AC_CHECK_HEADERS([sys/socket.h])
+AC_CHECK_HEADERS([sys/types.h])
+AC_CHECK_HEADERS([netinet/in.h])
+
 ### Libraries ###
 
 PKG_CHECK_MODULES([libevent], [libevent >= 2.0])
