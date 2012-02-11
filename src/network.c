@@ -75,6 +75,8 @@
 #include "socks.h"
 #include "protocol.h"
 
+#include "status.h"
+
 #include <errno.h>
 
 #include <event2/buffer.h>
@@ -549,6 +551,7 @@ open_outbound(conn_t *conn, bufferevent_data_cb readcb)
  success:
   log_info("%s (%s): Successful outbound connection to '%s'.",
            safe_str(conn->peername), conn->cfg->vtable->name, safe_str(peername));
+  status_note_connection(conn->peername);
   bufferevent_enable(buf, EV_READ|EV_WRITE);
   newconn->peername = peername;
   obfs_assert(connections);

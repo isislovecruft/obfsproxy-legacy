@@ -18,6 +18,7 @@ libobfsproxy_a_SOURCES = \
 	src/network.c \
 	src/protocol.c \
 	src/socks.c \
+	src/status.c \
 	src/util.c \
 	src/protocols/dummy.c \
 	src/protocols/obfs2.c
@@ -48,6 +49,7 @@ noinst_HEADERS = \
 	src/protocol.h \
 	src/sha256.h \
 	src/socks.h \
+	src/status.h \
 	src/util.h \
 	src/protocols/dummy.h \
 	src/protocols/obfs2.h \
