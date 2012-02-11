@@ -768,6 +768,7 @@ static void
 error_or_eof(conn_t *conn)
 {
   circuit_t *circ = conn->circuit;
+  conn_t *conn_flush;
   struct bufferevent *bev_err = conn->buffer;
   struct bufferevent *bev_flush;
 
@@ -778,8 +779,9 @@ error_or_eof(conn_t *conn)
     return;
   }
 
-  bev_flush = (conn == circ->upstream) ? circ->downstream->buffer
-                                       : circ->upstream->buffer;
+  conn_flush = (conn == circ->upstream) ? circ->downstream
+                                        : circ->upstream;
+  bev_flush = conn_flush->buffer;
   if (evbuffer_get_length(bufferevent_get_output(bev_flush)) == 0) {
     conn_free(conn);
     return;
@@ -792,11 +794,10 @@ error_or_eof(conn_t *conn)
   bufferevent_disable(bev_err, EV_READ|EV_WRITE);
   bufferevent_setcb(bev_err, NULL, NULL, flush_error_cb, conn);
 
-  /* XXX Dirty access to bufferevent guts.  There appears to be no
-     official API to retrieve the callback functions and/or change
-     just one callback while leaving the others intact. */
-  bufferevent_setcb(bev_flush, bev_flush->readcb,
-                    conn_free_on_flush, flush_error_cb, conn);
+  /* We can ignore any data that arrives; we should free the connection
+   * when we're done flushing */
+  bufferevent_setcb(bev_flush, NULL,
+                    conn_free_on_flush, flush_error_cb, conn_flush);
 }
 
 /**
