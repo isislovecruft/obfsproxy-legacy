@@ -529,8 +529,6 @@ open_outbound(conn_t *conn, bufferevent_data_cb readcb)
 
   do {
     peername = printable_address(addr->ai_addr, addr->ai_addrlen);
-    log_info("%s (%s): trying to connect to %s",
-             conn->peername, conn->cfg->vtable->name, peername);
     if (bufferevent_socket_connect(buf, addr->ai_addr, addr->ai_addrlen) >= 0)
       goto success;
     log_info("%s: connection to %s failed: %s",
@@ -547,6 +545,8 @@ open_outbound(conn_t *conn, bufferevent_data_cb readcb)
   return NULL;
 
  success:
+  log_info("%s (%s): Successful outbound connection to '%s'.",
+           conn->peername, conn->cfg->vtable->name, peername);
   bufferevent_enable(buf, EV_READ|EV_WRITE);
   newconn->peername = peername;
   obfs_assert(connections);
