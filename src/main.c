@@ -52,7 +52,7 @@ usage(void)
   fprintf(stderr, "\n* obfsproxy_args:\n"
           "--log-file=<file> ~ set logfile\n"
           "--log-min-severity=warn|notice|info|debug ~ "
-          "set minimum logging severity\n"
+          "set minimum logging severity (default: notice)\n"
           "--no-log ~ disable logging\n");
 
   exit(1);
