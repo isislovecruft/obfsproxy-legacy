@@ -56,8 +56,10 @@ launch_external_proxy(const char *const *begin)
       usage();
     } else {
       config_t *cfg = config_create(end - begin, begin);
-      if (!cfg)
+      if (!cfg) {
+        smartlist_free(configs);
         return -1; /* diagnostic already issued */
+      }
       smartlist_add(configs, cfg);
     }
     begin = end;
