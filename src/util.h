@@ -157,7 +157,8 @@ int obfs_snprintf(char *str, size_t size,
 int log_set_method(int method, const char *filename);
 
 /** Set the minimum severity that will be logged.
-    'sev_string' may be "warn", "info", or "debug" (case-insensitively). */
+    'sev_string' may be "warn", "notice", "info", or "debug"
+    (case-insensitively). */
 int log_set_min_severity(const char* sev_string);
 
 /** True if debug messages are being logged. */
@@ -181,8 +182,13 @@ void log_error_abort(const char *format, ...)
 void log_warn(const char *format, ...)
   ATTR_PRINTF_1;
 
-/** Info-level severity: for messages that should be sent to the user
-    during normal operation. */
+/** Notice-level severity: for messages that most users would like to
+    learn about during normal operation. */
+void log_notice(const char *format, ...)
+  ATTR_PRINTF_1;
+
+/** Info-level severity: for rather verbose messages of some interest to
+    users during normal operation. */
 void log_info(const char *format, ...)
   ATTR_PRINTF_1;
 
