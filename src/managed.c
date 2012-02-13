@@ -459,10 +459,10 @@ handle_environment(managed_proxy_t *proxy)
   if (proxy->is_server) {
     tmp = getenv("TOR_PT_EXTENDED_SERVER_PORT");
     if (!tmp) {
-      status = ST_ENV_FAIL_EXTENDED_PORT;
-      goto err;
+      proxy->vars.extended_port = xstrdup("");
+    } else {
+      proxy->vars.extended_port = xstrdup(tmp);
     }
-    proxy->vars.extended_port = xstrdup(tmp);
 
     tmp = getenv("TOR_PT_ORPORT");
     if (!tmp) {
