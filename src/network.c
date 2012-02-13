@@ -551,11 +551,16 @@ open_outbound(conn_t *conn, bufferevent_data_cb readcb)
  success:
   log_info("%s (%s): Successful outbound connection to '%s'.",
            safe_str(conn->peername), conn->cfg->vtable->name, safe_str(peername));
-  status_note_connection(conn->peername);
   bufferevent_enable(buf, EV_READ|EV_WRITE);
   newconn->peername = peername;
   obfs_assert(connections);
   smartlist_add(connections, newconn);
+
+  /* If we are a server, we should note this connection and consider
+     it in our heartbeat status messages. */
+  if (conn->mode == LSN_SIMPLE_SERVER)
+    status_note_connection(conn->peername);
+
   return newconn;
 }
 
