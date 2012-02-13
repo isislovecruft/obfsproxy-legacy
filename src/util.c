@@ -495,6 +495,10 @@ log_do_debug(void)
     Accepts a logging 'severity' and a 'format' string and logs the
     message in 'format' according to the configured obfsproxy minimum
     logging severity and logging method.
+
+    Beware! Because die_oom() calls this function, we must avoid mallocing
+    any memory here, or we could get into an infinite loop. I believe it
+    is currently the case that we don't malloc anything. -RD
 */
 static void
 logv(int severity, const char *format, va_list ap)
