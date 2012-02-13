@@ -216,7 +216,7 @@ resolve_address_port(const char *address, int nodns, int passive,
 }
 
 const char *
-safe_str_client(const char *address)
+safe_str(const char *address)
 {
   if (safe_logging)
     return "[scrubbed]";

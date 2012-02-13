@@ -155,7 +155,7 @@ int obfs_snprintf(char *str, size_t size,
 
 /** Safely log an address, scrubbing if necessary. */
 extern int safe_logging; /* defined in main.c */
-const char * safe_str_client(const char *address);
+const char * safe_str(const char *address);
 
 /** Set the log method, and open the logfile 'filename' if appropriate. */
 int log_set_method(int method, const char *filename);

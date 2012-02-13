@@ -236,7 +236,7 @@ open_listeners(struct event_base *base, config_t *cfg)
 
       if (!lsn->listener) {
         log_warn("Failed to open listening socket on %s: %s",
-                 safe_str_client(lsn->address),
+                 safe_str(lsn->address),
                  evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
         listener_free(lsn);
         return 0;
@@ -299,7 +299,7 @@ listener_cb(struct evconnlistener *evcl, evutil_socket_t fd,
 
   if (!conn || !buf) {
     log_warn("%s: failed to set up new connection from %s.",
-             safe_str_client(lsn->address), safe_str_client(peername));
+             safe_str(lsn->address), safe_str(peername));
     if (buf)
       bufferevent_free(buf);
     else
@@ -314,8 +314,8 @@ listener_cb(struct evconnlistener *evcl, evutil_socket_t fd,
     connections = smartlist_create();
   smartlist_add(connections, conn);
   log_debug("%s: new connection from %s (%d total)",
-	    safe_str_client(lsn->address),
-	    safe_str_client(peername),
+	    safe_str(lsn->address),
+	    safe_str(peername),
 	    smartlist_len(connections));
 
   conn->peername = peername;
@@ -338,7 +338,7 @@ simple_client_listener_cb(conn_t *conn)
 {
   obfs_assert(conn);
   obfs_assert(conn->mode == LSN_SIMPLE_CLIENT);
-  log_debug("%s: simple client connection", safe_str_client(conn->peername));
+  log_debug("%s: simple client connection", safe_str(conn->peername));
 
   bufferevent_setcb(conn->buffer, upstream_read_cb, NULL, error_cb, conn);
 
@@ -347,7 +347,7 @@ simple_client_listener_cb(conn_t *conn)
     return;
   }
 
-  log_debug("%s: setup complete", safe_str_client(conn->peername));
+  log_debug("%s: setup complete", safe_str(conn->peername));
 }
 
 /**
@@ -359,7 +359,7 @@ socks_client_listener_cb(conn_t *conn)
 {
   obfs_assert(conn);
   obfs_assert(conn->mode == LSN_SOCKS_CLIENT);
-  log_debug("%s: socks client connection", safe_str_client(conn->peername));
+  log_debug("%s: socks client connection", safe_str(conn->peername));
 
   circuit_create_socks(conn);
 
@@ -369,7 +369,7 @@ socks_client_listener_cb(conn_t *conn)
   /* Do not create a circuit at this time; the socks handler will do
      it after it learns the remote peer address. */
 
-  log_debug("%s: setup complete", safe_str_client(conn->peername));
+  log_debug("%s: setup complete", safe_str(conn->peername));
 }
 
 /**
@@ -381,7 +381,7 @@ simple_server_listener_cb(conn_t *conn)
 {
   obfs_assert(conn);
   obfs_assert(conn->mode == LSN_SIMPLE_SERVER);
-  log_debug("%s: server connection", safe_str_client(conn->peername));
+  log_debug("%s: server connection", safe_str(conn->peername));
 
   bufferevent_setcb(conn->buffer, downstream_read_cb, NULL, error_cb, conn);
 
@@ -390,7 +390,7 @@ simple_server_listener_cb(conn_t *conn)
     return;
   }
 
-  log_debug("%s: setup complete", safe_str_client(conn->peername));
+  log_debug("%s: setup complete", safe_str(conn->peername));
 }
 
 /**
@@ -405,7 +405,7 @@ conn_free(conn_t *conn)
     if (connections) {
       smartlist_remove(connections, conn);
       log_debug("Closing connection with %s; %d remaining",
-                safe_str_client(conn->peername) ? safe_str_client(conn->peername) : "'unknown'",
+                safe_str(conn->peername) ? safe_str(conn->peername) : "'unknown'",
                 smartlist_len(connections));
     }
     if (conn->peername)
@@ -432,7 +432,7 @@ static void
 conn_free_on_flush(struct bufferevent *bev, void *arg)
 {
   conn_t *conn = arg;
-  log_debug("%s for %s", __func__, safe_str_client(conn->peername));
+  log_debug("%s for %s", __func__, safe_str(conn->peername));
 
   if (evbuffer_get_length(bufferevent_get_output(bev)) == 0)
     conn_free(conn);
@@ -508,20 +508,20 @@ open_outbound(conn_t *conn, bufferevent_data_cb readcb)
   conn_t *newconn;
 
   if (!addr) {
-    log_warn("%s: no target addresses available", safe_str_client(conn->peername));
+    log_warn("%s: no target addresses available", safe_str(conn->peername));
     return NULL;
   }
 
   buf = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
   if (!buf) {
-    log_warn("%s: unable to create outbound socket buffer", safe_str_client(conn->peername));
+    log_warn("%s: unable to create outbound socket buffer", safe_str(conn->peername));
     return NULL;
   }
 
   newconn = proto_conn_create(conn->cfg);
   if (!newconn) {
     log_warn("%s: failed to allocate state for outbound connection",
-             safe_str_client(conn->peername));
+             safe_str(conn->peername));
     bufferevent_free(buf);
     return NULL;
   }
@@ -534,7 +534,7 @@ open_outbound(conn_t *conn, bufferevent_data_cb readcb)
     if (bufferevent_socket_connect(buf, addr->ai_addr, addr->ai_addrlen) >= 0)
       goto success;
     log_info("%s: connection to %s failed: %s",
-             safe_str_client(conn->peername), safe_str_client(peername),
+             safe_str(conn->peername), safe_str(peername),
              evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
     free(peername);
     addr = addr->ai_next;
@@ -548,7 +548,7 @@ open_outbound(conn_t *conn, bufferevent_data_cb readcb)
 
  success:
   log_info("%s (%s): Successful outbound connection to '%s'.",
-           safe_str_client(conn->peername), conn->cfg->vtable->name, safe_str_client(peername));
+           safe_str(conn->peername), conn->cfg->vtable->name, safe_str(peername));
   bufferevent_enable(buf, EV_READ|EV_WRITE);
   newconn->peername = peername;
   obfs_assert(connections);
@@ -569,13 +569,13 @@ open_outbound_hostname(conn_t *conn, int af, const char *addr, uint16_t port)
 
   buf = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
   if (!buf) {
-    log_warn("%s: unable to create outbound socket buffer", safe_str_client(conn->peername));
+    log_warn("%s: unable to create outbound socket buffer", safe_str(conn->peername));
     return NULL;
   }
   newconn = proto_conn_create(conn->cfg);
   if (!newconn) {
     log_warn("%s: failed to allocate state for outbound connection",
-             safe_str_client(conn->peername));
+             safe_str(conn->peername));
     bufferevent_free(buf);
     return NULL;
   }
@@ -606,7 +606,7 @@ open_outbound_hostname(conn_t *conn, int af, const char *addr, uint16_t port)
   if (bufferevent_socket_connect_hostname(buf, get_evdns_base(),
                                           af, addr, port) < 0) {
     log_warn("%s: outbound connection to %s:%u failed: %s",
-             safe_str_client(conn->peername), addr, port,
+             safe_str(conn->peername), addr, port,
              evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
     conn_free(newconn);
     return NULL;
@@ -628,7 +628,7 @@ socks_read_cb(struct bufferevent *bev, void *arg)
   socks_state_t *socks;
   enum socks_ret socks_ret;
 
-  log_debug("%s: %s", safe_str_client(conn->peername), __func__);
+  log_debug("%s: %s", safe_str(conn->peername), __func__);
 
   obfs_assert(conn->circuit);
   obfs_assert(conn->circuit->socks_state);
@@ -647,7 +647,7 @@ socks_read_cb(struct bufferevent *bev, void *arg)
       obfs_assert(r==0);
 
       log_info("%s: socks: trying to connect to %s:%u",
-               safe_str_client(conn->peername), safe_str_client(addr), port);
+               safe_str(conn->peername), safe_str(addr), port);
       if (circuit_add_down(conn->circuit,
                            open_outbound_hostname(conn, af, addr, port))) {
         /* XXXX send socks reply */
@@ -690,7 +690,7 @@ upstream_read_cb(struct bufferevent *bev, void *arg)
 {
   conn_t *up = arg;
   conn_t *down;
-  log_debug("%s: %s, %lu bytes available", safe_str_client(up->peername), __func__,
+  log_debug("%s: %s, %lu bytes available", safe_str(up->peername), __func__,
             (unsigned long)evbuffer_get_length(bufferevent_get_input(bev)));
 
   obfs_assert(up->buffer == bev);
@@ -704,11 +704,11 @@ upstream_read_cb(struct bufferevent *bev, void *arg)
                  bufferevent_get_input(up->buffer),
                  bufferevent_get_output(down->buffer))) {
     log_debug("%s: error during transmit.",
-              safe_str_client(up->peername));
+              safe_str(up->peername));
     conn_free(up);
   } else {
     log_debug("%s: transmitted %lu bytes",
-              safe_str_client(down->peername),
+              safe_str(down->peername),
               (unsigned long)
               evbuffer_get_length(bufferevent_get_output(down->buffer)));
   }
@@ -727,7 +727,7 @@ downstream_read_cb(struct bufferevent *bev, void *arg)
   enum recv_ret r;
 
   log_debug("%s: %s, %lu bytes available",
-            safe_str_client(down->peername), __func__,
+            safe_str(down->peername), __func__,
             (unsigned long)evbuffer_get_length(bufferevent_get_input(bev)));
 
   obfs_assert(down->buffer == bev);
@@ -743,23 +743,23 @@ downstream_read_cb(struct bufferevent *bev, void *arg)
                  bufferevent_get_output(up->buffer));
 
   if (r == RECV_BAD) {
-    log_debug("%s: error during receive.", safe_str_client(down->peername));
+    log_debug("%s: error during receive.", safe_str(down->peername));
     conn_free(down);
   } else {
-    log_debug("%s: forwarded %lu bytes", safe_str_client(down->peername),
+    log_debug("%s: forwarded %lu bytes", safe_str(down->peername),
               (unsigned long)
               evbuffer_get_length(bufferevent_get_output(up->buffer)));
     if (r == RECV_SEND_PENDING) {
-      log_debug("%s: reply of %lu bytes", safe_str_client(down->peername),
+      log_debug("%s: reply of %lu bytes", safe_str(down->peername),
                 (unsigned long)
                 evbuffer_get_length(bufferevent_get_input(up->buffer)));
       if (proto_send(up,
                      bufferevent_get_input(up->buffer),
                      bufferevent_get_output(down->buffer)) < 0) {
-        log_debug("%s: error during reply.", safe_str_client(down->peername));
+        log_debug("%s: error during reply.", safe_str(down->peername));
         conn_free(down);
       } else {
-        log_debug("%s: transmitted %lu bytes", safe_str_client(down->peername),
+        log_debug("%s: transmitted %lu bytes", safe_str(down->peername),
                   (unsigned long)
                   evbuffer_get_length(bufferevent_get_output(down->buffer)));
       }
@@ -779,7 +779,7 @@ error_or_eof(conn_t *conn)
   struct bufferevent *bev_err = conn->buffer;
   struct bufferevent *bev_flush;
 
-  log_debug("%s for %s", __func__, safe_str_client(conn->peername));
+  log_debug("%s for %s", __func__, safe_str(conn->peername));
   if (!circ || !circ->upstream || !circ->downstream || !circ->is_open
       || circ->is_flushing) {
     conn_free(conn);
@@ -816,7 +816,7 @@ error_cb(struct bufferevent *bev, short what, void *arg)
 {
   conn_t *conn = arg;
   int errcode = EVUTIL_SOCKET_ERROR();
-  log_debug("%s for %s: what=0x%04x errno=%d", __func__, safe_str_client(conn->peername),
+  log_debug("%s for %s: what=0x%04x errno=%d", __func__, safe_str(conn->peername),
             what, errcode);
 
   /* It should be impossible to get here with BEV_EVENT_CONNECTED. */
@@ -824,12 +824,12 @@ error_cb(struct bufferevent *bev, short what, void *arg)
 
   if (what & BEV_EVENT_ERROR) {
     log_warn("Error talking to %s: %s",
-             safe_str_client(conn->peername),
+             safe_str(conn->peername),
              evutil_socket_error_to_string(errcode));
   } else if (what & BEV_EVENT_EOF) {
-    log_info("EOF from %s", safe_str_client(conn->peername));
+    log_info("EOF from %s", safe_str(conn->peername));
   } else if (what & BEV_EVENT_TIMEOUT) {
-    log_info("Timeout talking to %s", safe_str_client(conn->peername));
+    log_info("Timeout talking to %s", safe_str(conn->peername));
   }
   error_or_eof(conn);
 }
@@ -843,7 +843,7 @@ flush_error_cb(struct bufferevent *bev, short what, void *arg)
 {
   conn_t *conn = arg;
   int errcode = EVUTIL_SOCKET_ERROR();
-  log_debug("%s for %s: what=0x%04x errno=%d", __func__, safe_str_client(conn->peername),
+  log_debug("%s for %s: what=0x%04x errno=%d", __func__, safe_str(conn->peername),
             what, errcode);
 
   /* It should be impossible to get here with BEV_EVENT_CONNECTED. */
@@ -853,7 +853,7 @@ flush_error_cb(struct bufferevent *bev, short what, void *arg)
   obfs_assert(conn->circuit->is_flushing);
 
   log_warn("Error during flush of connection with %s: %s",
-           safe_str_client(conn->peername),
+           safe_str(conn->peername),
            evutil_socket_error_to_string(errcode));
   conn_free(conn);
   return;
@@ -869,7 +869,7 @@ static void
 pending_conn_cb(struct bufferevent *bev, short what, void *arg)
 {
   conn_t *conn = arg;
-  log_debug("%s: %s", safe_str_client(conn->peername), __func__);
+  log_debug("%s: %s", safe_str(conn->peername), __func__);
 
   /* Upon successful connection, enable traffic on both sides of the
      connection, and replace this callback with the regular error_cb */
@@ -880,12 +880,12 @@ pending_conn_cb(struct bufferevent *bev, short what, void *arg)
 
     circ->is_open = 1;
 
-    log_debug("%s: Successful connection", safe_str_client(conn->peername));
+    log_debug("%s: Successful connection", safe_str(conn->peername));
 
     /* Queue handshake, if any. */
     if (proto_handshake(circ->downstream,
                         bufferevent_get_output(circ->downstream->buffer))<0) {
-      log_debug("%s: Error during handshake", safe_str_client(conn->peername));
+      log_debug("%s: Error during handshake", safe_str(conn->peername));
       conn_free(conn);
       return;
     }
@@ -917,7 +917,7 @@ pending_socks_cb(struct bufferevent *bev, short what, void *arg)
   conn_t *up;
   socks_state_t *socks;
 
-  log_debug("%s: %s", safe_str_client(down->peername), __func__);
+  log_debug("%s: %s", safe_str(down->peername), __func__);
 
   obfs_assert(circ);
   obfs_assert(circ->upstream);
@@ -969,8 +969,8 @@ pending_socks_cb(struct bufferevent *bev, short what, void *arg)
       if (down->peername) {
         log_debug("We connected to our SOCKS destination! "
                   "Replacing peername '%s' with '%s'",
-                  safe_str_client(down->peername),
-                  safe_str_client(peername));
+                  safe_str(down->peername),
+                  safe_str(peername));
         free(down->peername);
       }
       down->peername = peername;
@@ -989,8 +989,8 @@ pending_socks_cb(struct bufferevent *bev, short what, void *arg)
     circ->socks_state = NULL;
     circ->is_open = 1;
     log_debug("%s: Successful outbound connection to %s",
-              safe_str_client(up->peername),
-              safe_str_client(down->peername));
+              safe_str(up->peername),
+              safe_str(down->peername));
 
     bufferevent_setcb(up->buffer, upstream_read_cb, NULL, error_cb, up);
     bufferevent_setcb(down->buffer, downstream_read_cb, NULL, error_cb, down);
@@ -999,7 +999,7 @@ pending_socks_cb(struct bufferevent *bev, short what, void *arg)
 
     /* Queue handshake, if any. */
     if (proto_handshake(down, bufferevent_get_output(down->buffer))) {
-      log_debug("%s: Error during handshake", safe_str_client(down->peername));
+      log_debug("%s: Error during handshake", safe_str(down->peername));
       conn_free(down);
       return;
     }
