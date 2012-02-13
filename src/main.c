@@ -35,6 +35,8 @@ static struct event *sig_term;
 
 /* Pluggable transport proxy mode. ('External' or 'Managed') */
 static int is_external_proxy=1;
+/* Whether to scrub connection addresses -- on by default */
+int safe_logging=1;
 
 /**
    Prints the obfsproxy usage instructions then exits.
@@ -52,7 +54,8 @@ usage(void)
   fprintf(stderr, "\n* obfsproxy_args:\n"
           "--log-file=<file> ~ set logfile\n"
           "--log-min-severity=warn|info|debug ~ set minimum logging severity\n"
-          "--no-log ~ disable logging\n");
+          "--no-log ~ disable logging\n"
+          "--no-safe-logging ~ disable safe (scrubbed address) logging\n");
 
   exit(1);
 }
@@ -164,6 +167,8 @@ handle_obfsproxy_args(const char *const *argv)
       }
 
       logsev_set=1;
+    } else if (!strncmp(argv[i], "--no-safe-logging", 18)) {
+      safe_logging=0;
     } else if (!strncmp(argv[i], "--managed", 10)) {
       is_external_proxy=0;
     } else {

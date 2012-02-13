@@ -215,6 +215,15 @@ resolve_address_port(const char *address, int nodns, int passive,
   return ai;
 }
 
+const char *
+safe_str_client(const char *address)
+{
+  if (safe_logging)
+    return "[scrubbed]";
+  else
+    return address;
+}
+
 char *
 printable_address(struct sockaddr *addr, socklen_t addrlen)
 {

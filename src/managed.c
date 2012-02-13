@@ -153,9 +153,13 @@ print_protocol_line(const char *format, ...)
   vprintf(format, ap);
   fflush(stdout);
 
-  /* log the protocol message */
-  log_debug("We sent:");
-  log_debug_raw(format, ap2);
+  /* log the protocol message -- unless safe_logging is on, in which case
+   * we censor it because the METHOD line contains the bridge address.
+   */
+  if (!safe_logging) {
+    log_debug("We sent:");
+    log_debug_raw(format, ap2);
+  }
 
   va_end(ap);
   va_end(ap2);
