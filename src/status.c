@@ -106,7 +106,7 @@ status_log_heartbeat(void)
   int hours = (int)((secs - (days * 86400)) / 3600);
   int last_reset_hours = (int) (now - last_reset_counters) / 3600;
   int minutes = (int)((secs - (days * 86400) - (hours * 3600)) / 60);
-  log_info("Heartbeat: obfsproxy's uptime is %ld days, %d hours, and "
+  log_notice("Heartbeat: obfsproxy's uptime is %ld days, %d hours, and "
            "%d minutes. During the last %d hours we saw %d connections "
            "from %d unique addresses.",
            days, hours, minutes, last_reset_hours,
