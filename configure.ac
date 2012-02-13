@@ -23,6 +23,9 @@ AC_CHECK_HEADERS([sys/socket.h])
 AC_CHECK_HEADERS([sys/types.h])
 AC_CHECK_HEADERS([netinet/in.h])
 
+### Compiler Hardening ###
+AX_ENABLE_HARDENING
+
 ### Libraries ###
 
 PKG_CHECK_MODULES([libevent], [libevent >= 2.0])
