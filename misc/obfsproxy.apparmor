@@ -1,0 +1,33 @@
+# vim:syntax=apparmor
+# Last Modified: Mon Feb 13 18:13:47 EST 2012
+# Author: Jacob Appelbaum <jacob@appelbaum.net>
+#include <tunables/global>
+
+#
+/usr/local/bin/obfsproxy {
+  #include <abstractions/base>
+  #include <abstractions/nameservice>
+
+  /lib/ r,
+  /lib/** rmixk,
+  /usr/local/lib/ r,
+  /usr/local/lib/** rmixk,
+  /lib32/ r,
+  /lib32/** rmixk,
+  /lib64/ r,
+  /lib64/** rmixk,
+
+  capability net_bind_service,
+
+  network packet,
+
+  /proc/sys/kernel/random/uuid r,
+  /dev/random r,
+  /dev/urandom r,
+
+  /usr/local/bin/obfsproxy mr,
+
+  ### XXX: TODO
+  # we need a generic place for log files to be written
+
+}
