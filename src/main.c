@@ -271,10 +271,13 @@ obfsproxy_cleanup()
   evdns_base_free(get_evdns_base(), 0);
   event_free(sig_int);
   event_free(sig_term);
+  if (heartbeat)
+    event_free(heartbeat);
+
   event_base_free(get_event_base());
 
   cleanup_crypto();
-  status_cleanup();
+  status_connections_cleanup();
   close_obfsproxy_logfile();
 }
 
