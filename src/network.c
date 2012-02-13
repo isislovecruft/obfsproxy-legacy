@@ -816,8 +816,14 @@ error_cb(struct bufferevent *bev, short what, void *arg)
 {
   conn_t *conn = arg;
   int errcode = EVUTIL_SOCKET_ERROR();
-  log_debug("%s for %s: what=0x%04x errno=%d", __func__, safe_str(conn->peername),
-            what, errcode);
+  if (what & BEV_EVENT_ERROR) {
+    log_debug("%s for %s: what=0x%04x errno=%d", __func__,
+              safe_str(conn->peername),
+              what, errcode);
+  } else {
+    log_debug("%s for %s: what=0x%04x", __func__,
+              safe_str(conn->peername), what);
+  }
 
   /* It should be impossible to get here with BEV_EVENT_CONNECTED. */
   obfs_assert(!(what & BEV_EVENT_CONNECTED));
