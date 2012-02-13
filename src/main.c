@@ -22,6 +22,8 @@
 #include "managed.h"
 #include "external.h"
 
+#include "status.h"
+
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
@@ -32,6 +34,7 @@
 static struct event_base *the_event_base;
 static struct event *sig_int;
 static struct event *sig_term;
+static struct event *heartbeat;
 
 /* Pluggable transport proxy mode. ('External' or 'Managed') */
 static int is_external_proxy=1;
@@ -193,6 +196,16 @@ handle_obfsproxy_args(const char *const *argv)
   return i;
 }
 
+/** Libevent callback: Log heartbeat message once every hour. */
+static void
+heartbeat_cb(evutil_socket_t fd, short what, void *arg)
+{
+  (void) fd;
+  (void) what;
+  (void) arg;
+  status_log_heartbeat();
+}
+
 /**
    Initialize basic components of obfsproxy.
 */
@@ -233,6 +246,16 @@ obfsproxy_init()
   if (event_add(sig_int,NULL) || event_add(sig_term,NULL)) {
     log_error("Failed to initialize signal handling.");
   }
+
+  /* Initialize hourly heartbeat messages. */
+  struct timeval one_hour;
+  one_hour.tv_sec = 3600;
+  one_hour.tv_usec = 0;
+  status_init();
+  heartbeat = event_new(the_event_base, -1, EV_PERSIST, heartbeat_cb, NULL);
+  if (event_add(heartbeat, &one_hour)) {
+    log_error("Failed to initialize heartbeat logs.");
+  }
 }
 
 /**
@@ -251,6 +274,7 @@ obfsproxy_cleanup()
   event_base_free(get_event_base());
 
   cleanup_crypto();
+  status_cleanup();
   close_obfsproxy_logfile();
 }
 
