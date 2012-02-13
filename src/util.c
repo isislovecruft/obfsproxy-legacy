@@ -361,15 +361,16 @@ ascii_strlower(char *s)
 
 /** Logging severities */
 
-#define LOG_SEV_ERR     4
-#define LOG_SEV_WARN    3
+#define LOG_SEV_ERR     5
+#define LOG_SEV_WARN    4
+#define LOG_SEV_NOTICE  3
 #define LOG_SEV_INFO    2
 #define LOG_SEV_DEBUG   1
 
 /* logging method */
 static int logging_method=LOG_METHOD_STDERR;
 /* minimum logging severity */
-static int logging_min_sev=LOG_SEV_INFO;
+static int logging_min_sev=LOG_SEV_NOTICE;
 /* logfile fd */
 static int logging_logfile=-1;
 
@@ -380,6 +381,7 @@ sev_to_string(int severity)
   switch (severity) {
   case LOG_SEV_ERR:     return "error";
   case LOG_SEV_WARN:    return "warn";
+  case LOG_SEV_NOTICE:  return "notice";
   case LOG_SEV_INFO:    return "info";
   case LOG_SEV_DEBUG:   return "debug";
   default:
@@ -394,8 +396,10 @@ string_to_sev(const char *string)
 {
   if (!strcasecmp(string, "error"))
     return LOG_SEV_ERR;
-  if (!strcasecmp(string, "warn"))
+  else if (!strcasecmp(string, "warn"))
     return LOG_SEV_WARN;
+  else if (!strcasecmp(string, "notice"))
+    return LOG_SEV_NOTICE;
   else if (!strcasecmp(string, "info"))
     return LOG_SEV_INFO;
   else if (!strcasecmp(string, "debug"))
@@ -411,9 +415,10 @@ string_to_sev(const char *string)
 static int
 sev_is_valid(int severity)
 {
-  return (severity == LOG_SEV_ERR  ||
-          severity == LOG_SEV_WARN ||
-          severity == LOG_SEV_INFO ||
+  return (severity == LOG_SEV_ERR    ||
+          severity == LOG_SEV_WARN   ||
+          severity == LOG_SEV_NOTICE ||
+          severity == LOG_SEV_INFO   ||
           severity == LOG_SEV_DEBUG);
 }
 
@@ -459,7 +464,6 @@ log_set_method(int method, const char *filename)
   }
 
   logging_method = method;
-  log_info("Starting.");
 
   return 0;
 }
@@ -593,6 +597,18 @@ log_warn(const char *format, ...)
   va_start(ap,format);
 
   logv(LOG_SEV_WARN, format, ap);
+
+  va_end(ap);
+}
+
+/** Public function for logging a notice message. */
+void
+log_notice(const char *format, ...)
+{
+  va_list ap;
+  va_start(ap,format);
+
+  logv(LOG_SEV_NOTICE, format, ap);
 
   va_end(ap);
 }

@@ -53,7 +53,8 @@ usage(void)
     fprintf(stderr,"[%s] ", supported_protocols[i]->name);
   fprintf(stderr, "\n* obfsproxy_args:\n"
           "--log-file=<file> ~ set logfile\n"
-          "--log-min-severity=warn|info|debug ~ set minimum logging severity\n"
+          "--log-min-severity=warn|notice|info|debug ~ "
+          "set minimum logging severity (default: notice)\n"
           "--no-log ~ disable logging\n"
           "--no-safe-logging ~ disable safe (scrubbed address) logging\n");
 
@@ -81,16 +82,16 @@ handle_signal_cb(evutil_socket_t fd, short what, void *arg)
   case SIGINT:
     close_all_listeners();
     if (!got_sigint) {
-      log_info("Got SIGINT. Preparing shutdown.");
+      log_notice("Got SIGINT. Preparing shutdown.");
       start_shutdown(0);
       got_sigint++;
     } else {
-      log_info("Got SIGINT for the second time. Terminating.");
+      log_notice("Got SIGINT for the second time. Terminating.");
       start_shutdown(1);
     }
     break;
   case SIGTERM:
-    log_info("Got SIGTERM. Terminating.");
+    log_notice("Got SIGTERM. Terminating.");
     start_shutdown(1);
     break;
   }
@@ -241,7 +242,7 @@ void
 obfsproxy_cleanup()
 {
   /* We have landed. */
-  log_info("Exiting.");
+  log_notice("Exiting.");
 
   close_all_listeners();
   evdns_base_free(get_evdns_base(), 0);
@@ -262,6 +263,7 @@ obfs_main(int argc, const char *const *argv)
 
   /* Handle optional obfsproxy arguments. */
   begin = argv + handle_obfsproxy_args(argv);
+  log_notice("Starting.");
 
   if (is_external_proxy) {
     if (launch_external_proxy(begin) < 0)
