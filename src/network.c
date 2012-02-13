@@ -858,9 +858,18 @@ flush_error_cb(struct bufferevent *bev, short what, void *arg)
   obfs_assert(conn->circuit);
   obfs_assert(conn->circuit->is_flushing);
 
-  log_warn("Error during flush of connection with %s: %s",
-           safe_str(conn->peername),
-           evutil_socket_error_to_string(errcode));
+  if (what & BEV_EVENT_ERROR) {
+    log_warn("Error during flush of connection with %s: %s",
+             safe_str(conn->peername),
+             evutil_socket_error_to_string(errcode));
+  } else if (what & BEV_EVENT_EOF) {
+    log_info("EOF during flush of connection with %s",
+              safe_str(conn->peername));
+  } else if (what & BEV_EVENT_TIMEOUT) {
+    log_info("EOF during flush of connection with %s",
+             safe_str(conn->peername));
+  }
+
   conn_free(conn);
   return;
 }
@@ -941,7 +950,10 @@ pending_socks_cb(struct bufferevent *bev, short what, void *arg)
      errno isn't meaningful in that case...  */
   if ((what & (BEV_EVENT_EOF|BEV_EVENT_ERROR|BEV_EVENT_TIMEOUT))) {
     int err = EVUTIL_SOCKET_ERROR();
-    log_warn("Connection error: %s", evutil_socket_error_to_string(err));
+    if (what & BEV_EVENT_ERROR)
+      log_warn("Connection error: %s", evutil_socket_error_to_string(err));
+    else
+      log_info("EOF or timeout while waiting for socks");
     if (socks_state_get_status(socks) == ST_HAVE_ADDR) {
       socks_send_reply(socks, bufferevent_get_output(up->buffer), err);
     }
