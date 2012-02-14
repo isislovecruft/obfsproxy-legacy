@@ -178,7 +178,7 @@ stream_crypt(crypt_t *key, uchar *buf, size_t len)
 void
 crypt_free(crypt_t *key)
 {
-  memset(key, 0, sizeof(key));
+  memset(key, 0, sizeof(crypt_t));
   free(key);
 }
 
