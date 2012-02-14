@@ -72,3 +72,5 @@ tester.py: src/test/tester.py.in Makefile
 	$(SED) -e 's,[@]PYTHON[@],$(PYTHON),' < $< > $@
 	chmod +x $@
 endif
+
+man_MANS = obfsproxy.1
