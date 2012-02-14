@@ -11,15 +11,15 @@ obfsproxy \- a pluggable transports proxy
 is a tool that attempts to circumvent censorship, by transforming the
 Tor traffic between the client and the bridge. This way, censors, who
 usually monitor traffic between the client and the bridge, will see
-innocent-looking transformed traffic instead of the actual Tor traffic. 
+innocent-looking transformed traffic instead of the actual Tor traffic.
 
 .B obfsproxy
 supports multiple protocols, called pluggable transports,
 which specify how the traffic is transformed. For example, there might
 be a HTTP transport which transforms Tor traffic to look like regular
-HTTP traffic. 
+HTTP traffic.
 .SH OPTIONS
-.IP --log-file=<file> 
+.IP --log-file=<file>
 Set logfile
 .IP --log-min-severity=warn|info|debug|notice
 Set minimum logging severity
