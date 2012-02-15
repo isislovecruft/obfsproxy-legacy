@@ -837,7 +837,7 @@ error_cb(struct bufferevent *bev, short what, void *arg)
   obfs_assert(!(what & BEV_EVENT_CONNECTED));
 
   if (what & BEV_EVENT_ERROR) {
-    log_warn("Error talking to %s: %s",
+    log_info("Error talking to %s: %s",
              safe_str(conn->peername),
              evutil_socket_error_to_string(errcode));
   } else if (what & BEV_EVENT_EOF) {
