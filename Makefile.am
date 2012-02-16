@@ -56,7 +56,7 @@ noinst_HEADERS = \
 	src/test/tinytest.h \
 	src/test/tinytest_macros.h
 
-EXTRA_DIST = doc/protocol-spec.txt
+EXTRA_DIST = doc/obfs2/protocol-spec.txt
 
 TESTS = unittests
 
