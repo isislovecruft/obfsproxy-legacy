@@ -1,4 +1,3 @@
-
 ACLOCAL_AMFLAGS = -I m4
 WARNINGS = -Wall -Wwrite-strings -Werror
 AM_CPPFLAGS = -I. -I$(srcdir)/src
@@ -93,3 +92,10 @@ tester.py: src/test/tester.py.in Makefile
 endif
 
 man_MANS = doc/obfsproxy.1
+
+version:
+	@echo "obfsproxy @VERSION@"
+	@if test -d "$(top_srcdir)/.git" && test -x "`which git 2>&1;true`"; then \
+	   echo -n "git: " ;\
+	   (cd "$(top_srcdir)" && git rev-parse --short=16 HEAD); \
+	fi
