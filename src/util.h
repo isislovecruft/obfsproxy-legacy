@@ -138,6 +138,9 @@ int obfs_snprintf(char *str, size_t size,
                   const char *format, ...)
   ATTR_PRINTF_3;
 
+int obfs_asprintf(char **strp, const char *fmt, ...);
+int obfs_vasprintf(char **strp, const char *fmt, va_list args);
+
 /***** Logging. *****/
 
 /** Log destinations */

@@ -351,35 +351,34 @@ ascii_strlower(char *s)
  * You can treat this function as if its implementation were something like
    <pre>
      char buf[_INFINITY_];
-     tor_snprintf(buf, sizeof(buf), fmt, args);
-     *strp = tor_strdup(buf);
+     obfs_snprintf(buf, sizeof(buf), fmt, args);
+     *strp = xstrdup(buf);
      return strlen(*strp):
    </pre>
  * Where _INFINITY_ is an imaginary constant so big that any string can fit
  * into it.
  */
 int
-tor_asprintf(char **strp, const char *fmt, ...)
+obfs_asprintf(char **strp, const char *fmt, ...)
 {
   int r;
   va_list args;
   va_start(args, fmt);
-  r = tor_vasprintf(strp, fmt, args);
+  r = obfs_vasprintf(strp, fmt, args);
   va_end(args);
-  if (!*strp || r < 0) {
-    log_err(LD_BUG, "Internal error in asprintf");
-    tor_assert(0);
-  }
+  if (!*strp || r < 0)
+    log_error("Internal error in asprintf");
+
   return r;
 }
 
 /**
  * Portable vasprintf implementation.  Does a printf() into a newly malloc'd
  * string.  Differs from regular vasprintf in the same ways that
- * tor_asprintf() differs from regular asprintf.
+ * obfs_asprintf() differs from regular asprintf.
  */
 int
-tor_vasprintf(char **strp, const char *fmt, va_list args)
+obfs_vasprintf(char **strp, const char *fmt, va_list args)
 {
   /* use a temporary variable in case *strp is in args. */
   char *strp_tmp=NULL;
@@ -401,10 +400,10 @@ tor_vasprintf(char **strp, const char *fmt, va_list args)
     *strp = NULL;
     return -1;
   }
-  strp_tmp = tor_malloc(len + 1);
+  strp_tmp = xmalloc(len + 1);
   r = _vsnprintf(strp_tmp, len+1, fmt, args);
   if (r != len) {
-    tor_free(strp_tmp);
+    free(strp_tmp);
     *strp = NULL;
     return -1;
   }
@@ -422,13 +421,13 @@ tor_vasprintf(char **strp, const char *fmt, va_list args)
   len = vsnprintf(buf, sizeof(buf), fmt, tmp_args);
   va_end(tmp_args);
   if (len < (int)sizeof(buf)) {
-    *strp = tor_strdup(buf);
+    *strp = xstrdup(buf);
     return len;
   }
-  strp_tmp = tor_malloc(len+1);
+  strp_tmp = xmalloc(len+1);
   r = vsnprintf(strp_tmp, len+1, fmt, args);
   if (r != len) {
-    tor_free(strp_tmp);
+    free(strp_tmp);
     *strp = NULL;
     return -1;
   }
