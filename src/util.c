@@ -169,13 +169,14 @@ resolve_address_port(const char *address, int nodns, int passive,
   struct evutil_addrinfo *ai = NULL;
   struct evutil_addrinfo ai_hints;
   int ai_res, ai_errno;
-  char *a, *cp;
+  char *a, *cp, *aconst, *rbracket;
   const char *portstr;
 
   if (!address)
     return NULL;
 
   a = xstrdup(address);
+  aconst = a;
 
   if ((cp = strchr(a, ':'))) {
     portstr = cp+1;
@@ -185,7 +186,21 @@ resolve_address_port(const char *address, int nodns, int passive,
   } else {
     log_debug("Error in address %s: port required.", address);
     free(a);
+    free(aconst);
     return NULL;
+  }
+
+  rbracket = NULL;
+  if ('[' == *a) {
+      a++;
+      rbracket = strchr(a, ']');
+      if (!rbracket) {
+	    log_debug("No closing bracket in IPV6 address: %s!", a);
+	    free(aconst);
+	    return NULL;
+      }
+      if (rbracket)
+	    *rbracket = '\0';
   }
 
   memset(&ai_hints, 0, sizeof(ai_hints));
@@ -201,6 +216,8 @@ resolve_address_port(const char *address, int nodns, int passive,
   ai_errno = errno;
 
   free(a);
+  free(aconst);
+  free(rbracket);
 
   if (ai_res) {
     if (ai_res == EVUTIL_EAI_SYSTEM)
