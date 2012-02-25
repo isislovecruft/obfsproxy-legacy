@@ -36,7 +36,8 @@ unittests_SOURCES = \
 	src/test/unittest_socks.c \
 	src/test/unittest_dummy.c \
 	src/test/unittest_managed.c \
-	src/test/unittest_obfs2.c
+	src/test/unittest_obfs2.c \
+	src/test/unittest_util.c
 
 noinst_HEADERS = \
 	src/container.h \
