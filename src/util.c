@@ -171,11 +171,10 @@ resolve_address_port(const char *address, int nodns, int passive,
   int ai_res, ai_errno;
   char *a = xstrdup(address);
   char *cp;
-  char *aconst = a;
 
   const char *portstr;
 
-  if ((cp = strrchr(a, ':'))) {
+  /*if ((cp = strrchr(a, ':'))) {
     portstr = cp+1;
     *cp = '\0';
   } else if (default_port) {
@@ -184,8 +183,9 @@ resolve_address_port(const char *address, int nodns, int passive,
     log_debug("Error in address %s: port required.", address);
     free(aconst);
     return NULL;
-  }
+  }*/
 
+  char *aconst = a;
   char *rbracket = NULL;
   if ('[' == *a) {
       a++;
@@ -195,9 +195,18 @@ resolve_address_port(const char *address, int nodns, int passive,
 	free(aconst);
 	return NULL;
       }
-      if (rbracket)
-	*rbracket = '\0';
-    }
+  }
+  portstr = strchr((rbracket?rbracket:a), ':');
+  if (portstr) {
+    *portstr++ = '\0';
+  } else if (default_port) {
+    portstr = default_port;
+  } else {
+    log_debug("Error in address %s: port required.", address);
+    free(aconst);
+    return NULL;
+  if (rbracket)
+    *rbracket = '\0';
 
   memset(&ai_hints, 0, sizeof(ai_hints));
   ai_hints.ai_family = AF_UNSPEC;
