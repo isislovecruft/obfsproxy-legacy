@@ -192,16 +192,25 @@ resolve_address_port(const char *address, int nodns, int passive,
 
   rbracket = NULL;
   if ('[' == *a) {
-      a++;
-      rbracket = strchr(a, ']');
-      if (!rbracket) {
-	    log_debug("No closing bracket in IPV6 address: %s!", a);
-	    free(aconst);
-	    return NULL;
-      }
-      if (rbracket)
-	    *rbracket = '\0';
+    a++;
+    rbracket = strchr(a, ']');
+    if (!rbracket) {
+      log_debug("No closing bracket in IPV6 address: %s!", a);
+      free(aconst);
+      return NULL;
+    }
   }
+  portstr = strchr((rbracket?rbracket:a), ':');
+  if (portstr) {
+    *portstr++ = '\0';
+  } else if (default_port) {
+    portstr = default_port;
+  } else {
+    log_debug("Error in address %s: port required.", address);
+    free(aconst);
+    return NULL;
+  if (rbracket)
+    *rbracket = '\0';
 
   memset(&ai_hints, 0, sizeof(ai_hints));
   ai_hints.ai_family = AF_UNSPEC;
