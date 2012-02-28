@@ -56,7 +56,19 @@ noinst_HEADERS = \
 	src/test/tinytest.h \
 	src/test/tinytest_macros.h
 
-EXTRA_DIST = doc/obfs2/protocol-spec.txt
+EXTRA_DIST = \
+	doc/HACKING \
+	doc/obfsproxy.1 \
+	doc/obfsproxy_architecture.txt \
+	doc/TODO \
+	doc/tor-obfs-howto.txt \
+	doc/obfs2/protocol-spec.txt \
+	doc/obfs2/threat-model.txt \
+	doc/obfs2/howto/README \
+	doc/obfs2/howto/client-external-howto.txt \
+	doc/obfs2/howto/client-managed-howto.txt \
+	doc/obfs2/howto/server-managed-howto.txt \
+	doc/obfs2/howto/server-external-howto.txt
 
 TESTS = unittests
 
