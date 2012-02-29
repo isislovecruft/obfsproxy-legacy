@@ -69,18 +69,18 @@ test_util_resolve_address_port(void *unused)
     { 1, 1, "50.0.0.1:1337", 0, 0, "666"},
     // correct; no port, so default_port should be used
     { 1, 1, "50.0.0.1", 0, 0, "666"},
-    // wrong; port must be evutil_getaddrinfo().servname or int
-    //{ 1, 0, "50.0.0.1:fuckeverybody", 0, 0, "666"},
     // default_port resolve through evutil_getaddrinfo().servname? 
-    { 1, 0, "50.0.0.1", 0, 0, "FTP"},
+    { 1, 0, "50.0.0.1:https", 1, 1, "https"},
     // correct; IPV6 
     { 1, 1, "[2001:db8:1002:1003:1004:1005:1006:1007]:1337", 0, 0, "666"},
     // correct; no port, so default_port should be used 
     { 1, 1, "[2001:db8:1002:1003:1004:1005:1006:1007]", 0, 0, "666"},
     // wrong; no port, default_port fail 
+    { 1, 0, "[2001:db8:1002:1003:1004:1005:1006:1007]", 0, 0, NULL},
+    // wrong; no port, default port as empty string
     { 1, 0, "[2001:db8:1002:1003:1004:1005:1006:1007]", 0, 0, ""},
     // wrong; port must be enutil_getaddrinfo().servname or int
-    { 1, 0, "[2001:db8:1002:1003:1004:1005:1006:1007]:fuckeverybody", 0, 0, "666"},
+    { 1, 0, "[2001:db8:1002:1003:1004:1005:1006:1007]:fuck", 0, 0, "666"},
     // wrong; no closing bracket 
     { 1, 0, "[2001:db8:1002:1003:1004:1005:1006:1007:1337", 0, 0, "666"},
     // wrong; test even the NULL address

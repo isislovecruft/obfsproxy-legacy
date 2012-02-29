@@ -200,15 +200,17 @@ resolve_address_port(const char *address, int nodns, int passive,
       return NULL;
     }
   }
-  portstr = strchr((rbracket?rbracket:a), ':');
-  if (portstr) {
-    *portstr++ = '\0';
+  portstr = cp+1;
+  if ((cp = strchr((rbracket?rbracket:a), ':'))) {
+    portstr = cp+1;
+    *cp = '\0';
   } else if (default_port) {
     portstr = default_port;
   } else {
     log_debug("Error in address %s: port required.", address);
     free(aconst);
     return NULL;
+  }
   if (rbracket)
     *rbracket = '\0';
 
@@ -372,99 +374,6 @@ ascii_strlower(char *s)
       *s = *s - 'A' + 'a';
     ++s;
   }
-}
-
-/**
- * Portable asprintf implementation.  Does a printf() into a newly malloc'd
- * string.  Sets *<b>strp</b> to this string, and returns its length (not
- * including the terminating NUL character).
- *
- * You can treat this function as if its implementation were something like
-   <pre>
-     char buf[_INFINITY_];
-     obfs_snprintf(buf, sizeof(buf), fmt, args);
-     *strp = xstrdup(buf);
-     return strlen(*strp):
-   </pre>
- * Where _INFINITY_ is an imaginary constant so big that any string can fit
- * into it.
- */
-int
-obfs_asprintf(char **strp, const char *fmt, ...)
-{
-  int r;
-  va_list args;
-  va_start(args, fmt);
-  r = obfs_vasprintf(strp, fmt, args);
-  va_end(args);
-  if (!*strp || r < 0)
-    log_error("Internal error in asprintf");
-
-  return r;
-}
-
-/**
- * Portable vasprintf implementation.  Does a printf() into a newly malloc'd
- * string.  Differs from regular vasprintf in the same ways that
- * obfs_asprintf() differs from regular asprintf.
- */
-int
-obfs_vasprintf(char **strp, const char *fmt, va_list args)
-{
-  /* use a temporary variable in case *strp is in args. */
-  char *strp_tmp=NULL;
-#ifdef HAVE_VASPRINTF
-  /* If the platform gives us one, use it. */
-  int r = vasprintf(&strp_tmp, fmt, args);
-  if (r < 0)
-    *strp = NULL;
-  else
-    *strp = strp_tmp;
-  return r;
-#elif defined(_MSC_VER)
-  /* On Windows, _vsnprintf won't tell us the length of the string if it
-   * overflows, so we need to use _vcsprintf to tell how much to allocate */
-  int len, r;
-  char *res;
-  len = _vscprintf(fmt, args);
-  if (len < 0) {
-    *strp = NULL;
-    return -1;
-  }
-  strp_tmp = xmalloc(len + 1);
-  r = _vsnprintf(strp_tmp, len+1, fmt, args);
-  if (r != len) {
-    free(strp_tmp);
-    *strp = NULL;
-    return -1;
-  }
-  *strp = strp_tmp;
-  return len;
-#else
-  /* Everywhere else, we have a decent vsnprintf that tells us how many
-   * characters we need.  We give it a try on a short buffer first, since
-   * it might be nice to avoid the second vsnprintf call.
-   */
-  char buf[128];
-  int len, r;
-  va_list tmp_args;
-  va_copy(tmp_args, args);
-  len = vsnprintf(buf, sizeof(buf), fmt, tmp_args);
-  va_end(tmp_args);
-  if (len < (int)sizeof(buf)) {
-    *strp = xstrdup(buf);
-    return len;
-  }
-  strp_tmp = xmalloc(len+1);
-  r = vsnprintf(strp_tmp, len+1, fmt, args);
-  if (r != len) {
-    free(strp_tmp);
-    *strp = NULL;
-    return -1;
-  }
-  *strp = strp_tmp;
-  return len;
-#endif
 }
 
 /************************ Logging Subsystem *************************/
