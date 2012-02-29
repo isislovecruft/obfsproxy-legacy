@@ -169,21 +169,8 @@ resolve_address_port(const char *address, int nodns, int passive,
   struct evutil_addrinfo *ai = NULL;
   struct evutil_addrinfo ai_hints;
   int ai_res, ai_errno;
-  char *a = xstrdup(address);
-  char *cp;
-
+  char *a = xstrdup(address), *cp;
   const char *portstr;
-
-  /*if ((cp = strrchr(a, ':'))) {
-    portstr = cp+1;
-    *cp = '\0';
-  } else if (default_port) {
-    portstr = default_port;
-  } else {
-    log_debug("Error in address %s: port required.", address);
-    free(aconst);
-    return NULL;
-  }*/
 
   char *aconst = a;
   char *rbracket = NULL;
@@ -196,15 +183,17 @@ resolve_address_port(const char *address, int nodns, int passive,
 	return NULL;
       }
   }
-  portstr = strchr((rbracket?rbracket:a), ':');
-  if (portstr) {
-    *portstr++ = '\0';
+  portstr = cp+1;
+  if ((cp = strchr((rbracket?rbracket:a), ':'))) {
+    portstr = cp+1;
+    *cp = '\0';
   } else if (default_port) {
     portstr = default_port;
   } else {
     log_debug("Error in address %s: port required.", address);
     free(aconst);
     return NULL;
+  }
   if (rbracket)
     *rbracket = '\0';
 
