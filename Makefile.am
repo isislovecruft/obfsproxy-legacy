@@ -87,7 +87,7 @@ noinst_PROGRAMS += tester.py
 tester_py_SOURCES = src/test/tester.py.in
 
 tester.py: src/test/tester.py.in Makefile
-	$(SED) -e 's,[@]PYTHON[@],$(PYTHON),' < src/test/tester.py.in > tester.py
+	$(SED) -e 's,[@]PYTHON[@],$(PYTHON),' < $(top_srcdir)/src/test/tester.py.in > tester.py
 	chmod +x tester.py
 endif
 
