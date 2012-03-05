@@ -57,6 +57,10 @@ noinst_HEADERS = \
 	src/test/tinytest_macros.h
 
 EXTRA_DIST = \
+	ChangeLog \
+	Doxyfile \
+	LICENSE \
+	README \
 	doc/HACKING \
 	doc/obfsproxy.1 \
 	doc/obfsproxy_architecture.txt \
