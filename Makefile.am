@@ -77,7 +77,9 @@ EXTRA_DIST = \
 TESTS = unittests
 
 doxygen:
-	doxygen && cd doc/doxygen/latex && make
+	mkdir -p doc/doxygen
+	doxygen $(top_srcdir)/Doxyfile
+	$(MAKE) -C doc/doxygen/latex
 
 if HAVE_PYTHON
 TESTS += tester.py
