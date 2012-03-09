@@ -5,6 +5,8 @@ Changes in version 0.1.1 - <not yet released>
    Fixes bug #5312. Patch by Peter Palfrader.
  - Allow doxygen documentation to be built in out-of-source
    builds. Fixes bug #5315. Patch by Peter Palfrader.
+ - Fix out-of-source building of tester.py. Fixes bug #5310. Patch by
+   Peter Palfrader.
 
 
 Changes in version 0.1.0 - 2012-03-05
