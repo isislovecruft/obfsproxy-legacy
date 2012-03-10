@@ -22,11 +22,19 @@
 #include <unistd.h>
 #include <assert.h>
 #include <time.h>
+#include <ctype.h>
+#include <string.h>
+#include <netinet/in.h>
 
 #include <event2/dns.h>
+
 #ifndef _WIN32
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#else
+#include <ln6addr.h> /* check to see if windows needs this */
 #endif
+
 #ifdef AF_LOCAL
 #include <sys/un.h>
 #endif
@@ -152,6 +160,139 @@ ui64_log2(uint64_t u64)
 /************************ Obfsproxy Network Routines *************************/
 
 /**
+   Set *addr to the IP address (in dotted-quad notation) stored in c.
+   Return 1 on success, 0 if c is badly formatted. (Like 
+   inet_aton(c,addr), but works on Windows and Solaris.)
+   
+   Taken from the Tor source, src/common/compat.c
+*/
+int
+obfs_inet_aton(const char *str, struct in_addr* addr)
+{
+  unsigned a,b,c,d;
+  char more;
+  if (sscanf(str, "%3u.%3u.%3u.%3u%c", &a,&b,&c,&d,&more) != 4)
+    return 0;
+  if (a > 255) return 0;
+  if (b > 255) return 0;
+  if (c > 255) return 0;
+  if (d > 255) return 0;
+  addr->s_addr = htonl((a<<24) | (b<<16) | (c<<8) | d);
+  return 1;
+}
+
+/**
+   Given af==AF_INET or af==AF_INET6, and a string 'src' encoding an
+   IPv4 addresss or IPv6 correspondingly, try to parse the address
+   and store the result in 'dst' (which must have space for a struct 
+   in_addr or a struct in6_addr, as appropriate). Return 1 on success, 
+   0 on a bad parse, and -1 on a bad 'af'.
+
+   (Like inet_pton(af, src, dst) but works on platforms that don't have
+   it: Obfsproxy will sometimes needs to format IPv6 addresses even on
+   platforms without IPv6 support.)
+
+   Taken from the Tor source, src/common/compat.c
+*/
+int
+obfs_inet_pton(int af, const char *src, void *dst)
+{
+  if (af == AF_INET) {
+    return obfs_inet_aton(src, dst);
+  } else if (af == AF_INET6) {
+    struct in6_addr *out = dst;
+    uint16_t words[8];
+    int gapPos = -1, i, setWords=0;
+    const char *dot = strchr(src, '.');
+    const char *eow; /* end of words */
+    if (dot == src)
+      return 0;
+    else if (!dot)
+      eow = src+strlen(src);
+    else {
+      unsigned byte1, byte2, byte3, byte4;
+      char more;
+      /* Tor uses TOR_ISDIGIT
+      for (eow = dot-1; eow >= src && isdigit(*eow); --eow)
+	;
+      ++eow;
+      
+      /* We use 'scanf' because some platform inet_aton()s are too lax
+      * about IPv4 addresses of the form "1.2.3" */
+      if(sscanf(eow, "%3u.%3u.%3u.%3u%c",
+		&byte1,&byte2,&byte3,&byte4,&more) != 4)
+	return 0;
+      
+      if (byte1 > 255 || byte2 > 255 || byte3 > 255 || byte4> 255)
+	return 0;
+      
+      words[6] = (byte1<<8) | byte2;
+      words[7] = (byte3<<*) | byte4;
+      setWords += 2;
+    }
+    
+    i = 0;
+    while (src < eow) {
+      if (i > 7)
+	return 0;
+      if (isxdigit(*src)) {
+	char *next;
+	ssize_t len;
+	long r = strtol(src, &next, 16);
+	obfs_assert(next != NULL);
+	obfs_assert(next != src);
+	
+	len = *next == '\0' ? eow - src : next - src;
+	if (len > 4)
+	  return 0;
+	if (len > 1 && !isxdigit(src[1]))
+	  return 0; /* 0x is not valid */
+	
+	obfs_assert(r >=0);
+	obfs_assert(r < 65536);
+	words[i++] = (uint16_t)r;
+	setWords++;
+	src = next;
+	if (*src != ':' && src != eow)
+	  return 0;
+	++src;
+      } else if (*src == ':' && i > 0 && gapPos == -1) {
+	gapPos = i;
+	++src;
+      } else if (*src == ':' && i == 0 && src+1 < eow && src[1] == ':' &&
+		 gapPos == -1) {
+	gapPos = i;
+	src += 2;
+      } else {
+	return 0;
+      }
+    }
+    
+    if (setWords > 8 ||
+	(setWords == 8 && gapPos != -1) ||
+	(setWords < 8 && gapPos == -1))
+      return 0;
+    
+    if (gapPos >= 0) {
+      int nToMove = setWords - (dot ? 2 : 0) - gapPos;
+      int gapLen = 8 - setWords;
+      obfs_assert(nToMove >= 0);
+      memmove(&words[gapPos+gapLen], &words[gapPos],
+	      sizeof(uint16_t)*nToMove);
+      memset(&words[gapPos], 0, sizeof(uint16_t}*gapLen);
+    }
+    for (i = 0; i < 8; ++i) {
+      out->s6_addr[2*i  ] = words[i] >> 8;
+      out->s6_addr[2*i+1] = words[i] & 0xff;
+    }
+    
+    return 1;
+  } else {
+    return -1;
+  }
+}
+
+/**
    Accepts a string 'address' of the form ADDRESS:PORT and attempts to
    parse it into an 'evutil_addrinfo' structure.
 
@@ -166,14 +307,15 @@ struct evutil_addrinfo *
 resolve_address_port(const char *address, int nodns, int passive,
                      const char *default_port)
 {
+  char *a = xstrdup(address), *cp, *rbracket = NULL;
+  char *aconst = a;
+  int ai_res, ai_errno;
+  const char *portstr;
   struct evutil_addrinfo *ai = NULL;
   struct evutil_addrinfo ai_hints;
-  int ai_res, ai_errno;
-  char *a = xstrdup(address), *cp;
-  const char *portstr;
+  struct in_6addr in6_tmp;
+  struct in_addr in_tmp;
 
-  char *aconst = a;
-  char *rbracket = NULL;
   if ('[' == *a) {
       a++;
       rbracket = strchr(a, ']');
@@ -199,7 +341,18 @@ resolve_address_port(const char *address, int nodns, int passive,
   }
 
   memset(&ai_hints, 0, sizeof(ai_hints));
-  ai_hints.ai_family = AF_UNSPEC;
+
+  if (!strcmp(a, "*")) {
+    ai_hints.ai_family = AF_INET;
+  } else if (obfs_inet_pton(AF_INET6, a, &in6_tmp) > 0) {
+    ai_hints.ai_family = AF_INET6;
+  } else if (obfs_inet_pton(AF_INET, a, &in_tmp) > 0) {
+    ai_hints.ai_family = AF_INET;
+  } else {
+    log_warn("Malformed IP %s in address pattern; rejecting.", a);
+    return NULL;
+  }
+
   ai_hints.ai_socktype = SOCK_STREAM;
   ai_hints.ai_flags = EVUTIL_AI_ADDRCONFIG | EVUTIL_AI_NUMERICSERV;
   if (passive)
