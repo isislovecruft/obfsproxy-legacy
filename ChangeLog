@@ -1,4 +1,4 @@
-Changes in version 0.1.1 - <not yet released>
+Changes in version 0.1.1 - 2012-03-09
  - Add trailing slash to the torproject URL in the man page. Fixes
    bug #5311. Patch by Peter Palfrader.
  - Add LICENSE and Doxyfile to the release archives from now on.
