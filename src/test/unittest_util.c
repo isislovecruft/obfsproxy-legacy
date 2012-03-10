@@ -28,7 +28,7 @@ test_util_resolve_address_port(void *unused)
     // wrong; no port, default port as empty string
     { 1, 0, "[2001:db8:1002:1003:1004:1005:1006:1007]", 0, 0, ""},
     // wrong; port must be enutil_getaddrinfo().servname or int
-    { 1, 0, "[2001:db8:1002:1003:1004:1005:1006:1007]:fuck", 0, 0, "666"},
+    { 1, 0, "[2001:db8:1002:1003:1004:1005:1006:1007]:nyarlethotep", 0, 0, "666"},
     // wrong; no closing bracket 
     { 1, 0, "[2001:db8:1002:1003:1004:1005:1006:1007:1337", 0, 0, "666"},
     // wrong; test even the NULL address
