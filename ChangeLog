@@ -8,6 +8,10 @@ Changes in version 0.1.1 - <not yet released>
  - Fix out-of-source building of tester.py. Fixes bug #5310. Patch by
    Peter Palfrader.
  - Improve README installation instructions. Fixes bug #5313.
+ - Add gcc and ld hardening flags. Fixes part of #5131. Patch by
+   ioerror.
+ - Add AppArmor profile for obfsproxy. Fixes part of #5131. Patch by
+   ioerror.
 
 
 Changes in version 0.1.0 - 2012-03-05
