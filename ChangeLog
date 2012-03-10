@@ -7,6 +7,7 @@ Changes in version 0.1.1 - <not yet released>
    builds. Fixes bug #5315. Patch by Peter Palfrader.
  - Fix out-of-source building of tester.py. Fixes bug #5310. Patch by
    Peter Palfrader.
+ - Improve README installation instructions. Fixes bug #5313.
 
 
 Changes in version 0.1.0 - 2012-03-05
