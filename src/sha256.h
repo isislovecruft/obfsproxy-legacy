@@ -1,19 +1,13 @@
-<<<<<<< HEAD
-=======
 /* Copyright (c) 2009-2012, The Tor Project, Inc. */
->>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
 /* See the LICENSE file for licensing information */
 
 /**
  * \file sha256.h
  * \brief Headers for sha256.c.
-<<<<<<< HEAD
-=======
  *
  * \details This SHA256 implementation is adapted from the public
  * domain one in LibTomCrypt, version 1.6.  Tor uses it on platforms
  * where OpenSSL doesn't have a SHA256.
->>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
  **/
 
 #ifndef SHA256_H

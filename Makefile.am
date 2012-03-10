@@ -36,12 +36,7 @@ unittests_SOURCES = \
 	src/test/unittest_socks.c \
 	src/test/unittest_dummy.c \
 	src/test/unittest_managed.c \
-<<<<<<< HEAD
-	src/test/unittest_obfs2.c \
-	src/test/unittest_util.c
-=======
-	src/test/unittest_obfs2.c
->>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
+	src/test/unittest_obfs2.c 
 
 noinst_HEADERS = \
 	src/container.h \
@@ -61,9 +56,6 @@ noinst_HEADERS = \
 	src/test/tinytest.h \
 	src/test/tinytest_macros.h
 
-<<<<<<< HEAD
-EXTRA_DIST = doc/obfs2/protocol-spec.txt
-=======
 EXTRA_DIST = \
 	ChangeLog \
 	Doxyfile \
@@ -81,18 +73,13 @@ EXTRA_DIST = \
 	doc/obfs2/howto/client-managed-howto.txt \
 	doc/obfs2/howto/server-managed-howto.txt \
 	doc/obfs2/howto/server-external-howto.txt
->>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
 
 TESTS = unittests
 
 doxygen:
-<<<<<<< HEAD
-	doxygen && cd doc/doxygen/latex && make
-=======
 	mkdir -p doc/doxygen
 	doxygen $(top_srcdir)/Doxyfile
 	$(MAKE) -C doc/doxygen/latex
->>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
 
 if HAVE_PYTHON
 TESTS += tester.py
@@ -100,11 +87,7 @@ noinst_PROGRAMS += tester.py
 tester_py_SOURCES = src/test/tester.py.in
 
 tester.py: src/test/tester.py.in Makefile
-<<<<<<< HEAD
-	$(SED) -e 's,[@]PYTHON[@],$(PYTHON),' < src/test/tester.py.in > tester.py
-=======
 	$(SED) -e 's,[@]PYTHON[@],$(PYTHON),' < $(top_srcdir)/src/test/tester.py.in > tester.py
->>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
 	chmod +x tester.py
 endif
 
