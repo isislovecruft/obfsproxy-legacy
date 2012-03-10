@@ -5,7 +5,15 @@ to the Tor pluggable transports specification, and its modular
 architecture allows it to support multiple pluggable transports.
 
 To build obfsproxy from source:
+<<<<<<< HEAD
    ./autogen.sh && ./configure && make
+=======
+   ./configure && make
+
+If you got the source from git, run "./autogen.sh", which will run the
+various auto* programs. Then you can run ./configure, and refer to the
+above instructions.
+>>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
 
 See doc/ for more obfsproxy information.
 

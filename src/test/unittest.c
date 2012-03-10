@@ -11,7 +11,10 @@ extern struct testcase_t socks_tests[];
 extern struct testcase_t dummy_tests[];
 extern struct testcase_t obfs2_tests[];
 extern struct testcase_t managed_tests[];
+<<<<<<< HEAD
 extern struct testcase_t util_tests[];
+=======
+>>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
 
 struct testgroup_t groups[] = {
   { "container/", container_tests },
@@ -20,7 +23,10 @@ struct testgroup_t groups[] = {
   { "dummy/", dummy_tests },
   { "obfs2/", obfs2_tests },
   { "managed/", managed_tests },
+<<<<<<< HEAD
   { "util/", util_tests },
+=======
+>>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
   END_OF_GROUPS
 };
 

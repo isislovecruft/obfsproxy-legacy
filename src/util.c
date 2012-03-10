@@ -172,6 +172,7 @@ resolve_address_port(const char *address, int nodns, int passive,
   char *a = xstrdup(address), *cp;
   const char *portstr;
 
+<<<<<<< HEAD
   char *aconst = a;
   char *rbracket = NULL;
   if ('[' == *a) {
@@ -185,17 +186,26 @@ resolve_address_port(const char *address, int nodns, int passive,
   }
   portstr = cp+1;
   if ((cp = strchr((rbracket?rbracket:a), ':'))) {
+=======
+  if ((cp = strchr(a, ':'))) {
+>>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
     portstr = cp+1;
     *cp = '\0';
   } else if (default_port) {
     portstr = default_port;
   } else {
     log_debug("Error in address %s: port required.", address);
+<<<<<<< HEAD
     free(aconst);
     return NULL;
   }
   if (rbracket)
     *rbracket = '\0';
+=======
+    free(a);
+    return NULL;
+  }
+>>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
 
   memset(&ai_hints, 0, sizeof(ai_hints));
   ai_hints.ai_family = AF_UNSPEC;
@@ -209,7 +219,11 @@ resolve_address_port(const char *address, int nodns, int passive,
   ai_res = evutil_getaddrinfo(a, portstr, &ai_hints, &ai);
   ai_errno = errno;
 
+<<<<<<< HEAD
   free(aconst);
+=======
+  free(a);
+>>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
 
   if (ai_res) {
     if (ai_res == EVUTIL_EAI_SYSTEM)

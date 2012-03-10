@@ -1,0 +1,15 @@
+Changes in version 0.1.1 - <not yet released>
+ - Add trailing slash to the torproject URL in the man page. Fixes
+   bug #5311. Patch by Peter Palfrader.
+ - Add LICENSE and Doxyfile to the release archives from now on.
+   Fixes bug #5312. Patch by Peter Palfrader.
+ - Allow doxygen documentation to be built in out-of-source
+   builds. Fixes bug #5315. Patch by Peter Palfrader.
+ - Fix out-of-source building of tester.py. Fixes bug #5310. Patch by
+   Peter Palfrader.
+ - Improve README installation instructions. Fixes bug #5313.
+
+
+Changes in version 0.1.0 - 2012-03-05
+  - Initial release.
+

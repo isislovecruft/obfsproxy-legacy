@@ -33,8 +33,14 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ========
+<<<<<<< HEAD
 src/sha256.c is based on public-domain code in LibTomCrypt, modified by the Tor
 Project.  It is distributed under these terms:
+=======
+src/sha256.c and src/sha256.h are based on public-domain code in
+LibTomCrypt, modified by the Tor Project.  It is distributed under
+these terms:
+>>>>>>> 844a1a38cc6f84f71542003bf10e273f978f2f5e
 
 Copyright (c) 2009-2011, The Tor Project, Inc.
 
