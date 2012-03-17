@@ -150,7 +150,6 @@ static void conn_free_on_flush(struct bufferevent *bev, void *arg);
 static void circuit_create_socks(conn_t *up);
 static int circuit_add_down(circuit_t *circuit, conn_t *down);
 static void circuit_free(circuit_t *circuit);
-static conn_t *open_outbound(conn_t *conn, bufferevent_data_cb readcb);
 
 static void upstream_read_cb(struct bufferevent *bev, void *arg);
 static void downstream_read_cb(struct bufferevent *bev, void *arg);
@@ -339,48 +338,63 @@ static int
 conn_connect(conn_t *addr_conn, conn_t *connect_conn,
              bufferevent_data_cb readcb)
 {
-  bufferevent_setcb(buf, readcb, NULL, pending_conn_cb, newconn);
+  char *peername;
+  struct evutil_addrinfo *addr = config_get_target_addr(addr_conn->cfg);
+  struct bufferevent *buf = connect_conn->buffer;
+
+  if (!addr) {
+    log_warn("%s: no target addresses available", safe_str(addr_conn->peername));
+    return -1;
+  }
+
+  bufferevent_setcb(buf, readcb, NULL, pending_conn_cb, connect_conn);
 
   do {
     peername = printable_address(addr->ai_addr, addr->ai_addrlen);
+
     if (bufferevent_socket_connect(buf, addr->ai_addr, addr->ai_addrlen) >= 0)
       goto success;
     log_info("%s: connection to %s failed: %s",
-             safe_str(conn->peername), safe_str(peername),
+             safe_str(addr_conn->peername), safe_str(peername),
              evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
     free(peername);
     addr = addr->ai_next;
   } while (addr);
 
   log_warn("%s: all outbound connection attempts failed",
-           conn->peername);
+           addr_conn->peername);
 
-  conn_free(newconn);
-  return NULL;
+  return -1;
 
  success:
   log_info("%s (%s): Successful outbound connection to '%s'.",
-           safe_str(conn->peername), conn->cfg->vtable->name, safe_str(peername));
+           safe_str(addr_conn->peername),
+           addr_conn->cfg->vtable->name, safe_str(peername));
   bufferevent_enable(buf, EV_READ|EV_WRITE);
-  newconn->peername = peername;
-  obfs_assert(connections);
-  smartlist_add(connections, newconn);
+  connect_conn->peername = peername;
 
   /* If we are a server, we should note this connection and consider
      it in our heartbeat status messages. */
-  if (conn->mode == LSN_SIMPLE_SERVER)
-    status_note_connection(conn->peername);
+  if (addr_conn->mode == LSN_SIMPLE_SERVER)
+    status_note_connection(addr_conn->peername);
+
+  return 0;
 }
 
 /** Create the other side of connection <b>conn</b> on a circuit. */
 static conn_t *
 create_other_side_of_conn(const conn_t *conn)
 {
+  struct event_base *base = bufferevent_get_base(conn->buffer);
+  struct bufferevent *buf;
+  conn_t *newconn;
+
   buf = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
   if (!buf) {
     log_warn("%s: unable to create outbound socket buffer", safe_str(conn->peername));
     return NULL;
   }
+
   newconn = proto_conn_create(conn->cfg);
   if (!newconn) {
     log_warn("%s: failed to allocate state for outbound connection",
@@ -391,6 +405,11 @@ create_other_side_of_conn(const conn_t *conn)
 
   /* associate bufferevent with the new connection. */
   newconn->buffer = buf;
+
+  obfs_assert(connections);
+  smartlist_add(connections, newconn);
+
+  return newconn;
 }
 
 /**
@@ -406,8 +425,19 @@ simple_client_listener_cb(conn_t *conn)
 
   bufferevent_setcb(conn->buffer, upstream_read_cb, NULL, error_cb, conn);
 
-  if (circuit_create(conn, open_outbound(conn, downstream_read_cb))) {
+  conn_t *newconn = create_other_side_of_conn(conn);
+  if (!newconn) {
     conn_free(conn);
+    return;
+  }
+
+  if (circuit_create(conn, newconn)) {
+    conn_free(conn);
+    return;
+  }
+
+  if (conn_connect(conn, newconn, downstream_read_cb) < 0) {
+    conn_free(conn); /* circuit_free() should also free newconn. */
     return;
   }
 
@@ -449,7 +479,18 @@ simple_server_listener_cb(conn_t *conn)
 
   bufferevent_setcb(conn->buffer, downstream_read_cb, NULL, error_cb, conn);
 
-  if (circuit_create(open_outbound(conn, upstream_read_cb), conn)) {
+  conn_t *newconn = create_other_side_of_conn(conn);
+  if (!newconn) {
+    conn_free(conn);
+    return;
+  }
+
+  if (circuit_create(newconn, conn)) {
+    conn_free(conn);
+    return;
+  }
+
+  if (conn_connect(conn, newconn, upstream_read_cb) < 0) {
     conn_free(conn);
     return;
   }
@@ -560,61 +601,6 @@ circuit_free(circuit_t *circuit)
 }
 
 /**
-   Make the outbound connection for a circuit.
-*/
-static conn_t *
-open_outbound(conn_t *conn, bufferevent_data_cb readcb)
-{
-  struct evutil_addrinfo *addr = config_get_target_addr(conn->cfg);
-  struct event_base *base = bufferevent_get_base(conn->buffer);
-  struct bufferevent *buf;
-  char *peername;
-  conn_t *newconn;
-
-  if (!addr) {
-    log_warn("%s: no target addresses available", safe_str(conn->peername));
-    return NULL;
-  }
-
-  buf = bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
-  if (!buf) {
-    log_warn("%s: unable to create outbound socket buffer", safe_str(conn->peername));
-    return NULL;
-  }
-
-  newconn = proto_conn_create(conn->cfg);
-  if (!newconn) {
-    log_warn("%s: failed to allocate state for outbound connection",
-             safe_str(conn->peername));
-    bufferevent_free(buf);
-    return NULL;
-  }
-
-  newconn->buffer = buf;
-
-  return newconn;
-}
-
-/**
-   As open_outbound, but uses bufferevent_socket_connect_hostname
-   rather than bufferevent_socket_connect.
-*/
-static conn_t *
-open_outbound_hostname(conn_t *conn, int af, const char *addr, uint16_t port)
-{
-  struct event_base *base = bufferevent_get_base(conn->buffer);
-  struct bufferevent *buf;
-  conn_t *newconn;
-
-  /* Set up a temporary FQDN peername. When we actually connect to the
-     host, we will replace this peername with the IP address we
-     connected to. */
-  obfs_asprintf(&newconn->peername, "%s:%u", addr, port);
-
-  return newconn;
-}
-
-/**
     This callback is responsible for handling SOCKS traffic.
 */
 static void
@@ -644,26 +630,33 @@ socks_read_cb(struct bufferevent *bev, void *arg)
 
       log_info("%s: socks: trying to connect to %s:%u",
                safe_str(conn->peername), safe_str(addr), port);
-      if (circuit_add_down(conn->circuit,
-                           open_outbound_hostname(conn, af, addr, port))) {
+      conn_t *newconn = create_other_side_of_conn(conn);
+      if (!newconn) {
+        conn_free(conn);
+        return;
+      }
+
+      /* Set up a temporary FQDN peername. When we actually connect to the
+         host, we will replace this peername with the IP address we
+         connected to. */
+      obfs_asprintf(&newconn->peername, "%s:%u", addr, port);
+
+      if (circuit_add_down(conn->circuit, newconn)) {
         /* XXXX send socks reply */
         conn_free(conn);
         return;
       }
 
-      bufferevent_setcb(buf, downstream_read_cb, NULL, pending_socks_cb, newconn);
-      if (bufferevent_socket_connect_hostname(buf, get_evdns_base(),
+      bufferevent_setcb(newconn->buffer, downstream_read_cb, NULL, pending_socks_cb, newconn);
+      if (bufferevent_socket_connect_hostname(newconn->buffer, get_evdns_base(),
                                               af, addr, port) < 0) {
         log_warn("%s: outbound connection to %s:%u failed: %s",
                  safe_str(conn->peername), addr, port,
                  evutil_socket_error_to_string(EVUTIL_SOCKET_ERROR()));
-        conn_free(newconn);
-        return NULL;
+        conn_free(conn);
+        return;
       }
-
-      bufferevent_enable(buf, EV_READ|EV_WRITE);
-      obfs_assert(connections);
-      smartlist_add(connections, newconn);
+      bufferevent_enable(newconn->buffer, EV_READ|EV_WRITE);
 
       /* further upstream data will be processed once the downstream
          side is established */
