@@ -3,6 +3,8 @@ Changes in version 0.1.2 - <not yet released>
    #5157.
  - Implement obfsproxy --version. Fixes the rest of bug #5157.
  - Implement obfsproxy --help.
+ - Fix assertion failure when obfsproxy starts without network
+   connectivity. Fixes bug #5156.
 
 
 Changes in version 0.1.1 - 2012-03-09
