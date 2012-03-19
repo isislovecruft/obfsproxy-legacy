@@ -25,6 +25,7 @@ Makefile.in
 /obfsproxy
 /unittests
 /tester.py
+/micro-revision.i
 
 # /doc/
 /doc/doxygen

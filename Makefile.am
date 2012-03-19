@@ -54,7 +54,8 @@ noinst_HEADERS = \
 	src/protocols/dummy.h \
 	src/protocols/obfs2.h \
 	src/test/tinytest.h \
-	src/test/tinytest_macros.h
+	src/test/tinytest_macros.h \
+	micro-revision.i
 
 EXTRA_DIST = \
 	ChangeLog \
@@ -99,3 +100,27 @@ version:
 	   echo -n "git: " ;\
 	   (cd "$(top_srcdir)" && git rev-parse --short=16 HEAD); \
 	fi
+
+all: micro-revision.i
+
+micro-revision.i: FORCE
+	@rm -f micro-revision.tmp;					\
+	if test -d "$(top_srcdir)/.git" &&				\
+	  test -x "`which git 2>&1;true`"; then				\
+	  HASH="`cd "$(top_srcdir)" && git rev-parse --short=16 HEAD`"; 	\
+	  echo \"$$HASH\" > micro-revision.tmp; 			\
+        fi;								\
+	if test ! -f micro-revision.tmp ; then				\
+	  if test ! -f micro-revision.i ; then				\
+	    echo '""' > micro-revision.i;				\
+	  fi;								\
+	elif test ! -f micro-revision.i ||				\
+	  test x"`cat micro-revision.tmp`" != x"`cat micro-revision.i`"; then \
+	  mv micro-revision.tmp micro-revision.i;			\
+	fi; true
+	@rm -f micro-revision.tmp;
+
+CLEANFILES = micro-revision.i
+
+#Dummy target to ensure that micro-revision.i _always_ gets built.
+FORCE:

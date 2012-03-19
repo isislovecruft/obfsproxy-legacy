@@ -1,3 +1,10 @@
+Changes in version 0.1.2 - <not yet released>
+ - Display git revision when we start logging. Fixes part of bug
+   #5157.
+ - Implement obfsproxy --version. Fixes the rest of bug #5157.
+ - Implement obfsproxy --help.
+
+
 Changes in version 0.1.1 - 2012-03-09
  - Add trailing slash to the torproject URL in the man page. Fixes
    bug #5311. Patch by Peter Palfrader.
