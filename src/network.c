@@ -591,24 +591,10 @@ open_outbound_hostname(conn_t *conn, int af, const char *addr, uint16_t port)
   /* associate bufferevent with the new connection. */
   newconn->buffer = buf;
 
-  { /* set up temporary FQDN peername. When we connect to the host, we
-        will replace this peername with the IP address we connected
-        to. */
-
-    /* '6' is strlen(":65535")
-       '1' is the ending NUL. */
-    const size_t peername_len = strlen(addr) + 6 + 1;
-    newconn->peername = xzalloc(peername_len);
-    if (obfs_snprintf(newconn->peername, peername_len, "%s:%d",
-                      addr, port) < 0) {
-      log_warn("Failed while writing peername (%s:%u)! This might be a bug.",
-               addr, port);
-      free(newconn->peername);
-      newconn->peername = NULL;
-      conn_free(newconn);
-      return NULL;
-    }
-  }
+  /* Set up a temporary FQDN peername. When we actually connect to the
+     host, we will replace this peername with the IP address we
+     connected to. */
+  obfs_asprintf(&newconn->peername, "%s:%u", addr, port);
 
   bufferevent_setcb(buf, downstream_read_cb, NULL, pending_socks_cb, newconn);
   if (bufferevent_socket_connect_hostname(buf, get_evdns_base(),
