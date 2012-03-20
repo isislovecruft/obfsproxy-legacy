@@ -648,6 +648,12 @@ socks_read_cb(struct bufferevent *bev, void *arg)
       }
 
       bufferevent_setcb(newconn->buffer, downstream_read_cb, NULL, pending_socks_cb, newconn);
+      bufferevent_enable(newconn->buffer, EV_READ|EV_WRITE);
+
+      /* further upstream data will be processed once the downstream
+         side is established */
+      bufferevent_disable(conn->buffer, EV_READ|EV_WRITE);
+
       if (bufferevent_socket_connect_hostname(newconn->buffer, get_evdns_base(),
                                               af, addr, port) < 0) {
         log_warn("%s: outbound connection to %s:%u failed: %s",
@@ -656,11 +662,6 @@ socks_read_cb(struct bufferevent *bev, void *arg)
         conn_free(conn);
         return;
       }
-      bufferevent_enable(newconn->buffer, EV_READ|EV_WRITE);
-
-      /* further upstream data will be processed once the downstream
-         side is established */
-      bufferevent_disable(conn->buffer, EV_READ|EV_WRITE);
       return;
     }
 
