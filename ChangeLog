@@ -1,4 +1,4 @@
-Changes in version 0.1.2 - <not yet released>
+Changes in version 0.1.3 - 2012-04-03
  - Display git revision when we start logging. Fixes part of bug
    #5157.
  - Implement obfsproxy --version. Fixes the rest of bug #5157.
