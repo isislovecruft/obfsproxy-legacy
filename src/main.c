@@ -59,9 +59,9 @@ get_version(void)
 {
   if (!the_obfsproxy_version) {
     if (strlen(obfs_git_revision))
-      obfs_asprintf(&the_obfsproxy_version, "git-%s", obfs_git_revision);
+      obfs_asprintf(&the_obfsproxy_version, "%s (git-%s)", VERSION, obfs_git_revision);
     else
-      obfs_asprintf(&the_obfsproxy_version, "git");
+      the_obfsproxy_version = xstrdup(VERSION);
   }
 
   return the_obfsproxy_version;
@@ -337,7 +337,7 @@ obfs_main(int argc, const char *const *argv)
 
   /* Handle optional obfsproxy arguments. */
   begin = argv + handle_obfsproxy_args(argv);
-  log_notice("Starting (%s).", get_version());
+  log_notice("Starting (obfsproxy version: %s).", get_version());
 
   if (is_external_proxy) {
     if (launch_external_proxy(begin) < 0)
