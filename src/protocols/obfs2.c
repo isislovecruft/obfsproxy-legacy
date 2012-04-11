@@ -167,6 +167,7 @@ int
 parse_and_set_options(int n_options, const char *const *options,
                       obfs2_config_t *cfg)
 {
+  int options_left = n_options;
   int got_dest=0;
   int got_ss=0;
   const char* defport;
@@ -177,7 +178,7 @@ parse_and_set_options(int n_options, const char *const *options,
   }
 
   /* Now parse the optional arguments */
-  while (!strncmp(*options,"--",2)) {
+  while (options_left && !strncmp(*options,"--",2)) {
     if (!strncmp(*options,"--dest=",7)) {
       if (got_dest)
         return -1;
@@ -201,7 +202,15 @@ parse_and_set_options(int n_options, const char *const *options,
       log_warn("obfs2: Unknown argument '%s'.", *options);
       return -1;
     }
+    options_left--;
     options++;
+  }
+
+  /* we still need to parse the mode and the listen address. */
+  if (options_left != 2) {
+    log_warn("obfs2 needs two options (mode, listen address), after its "
+             "optional arguments. You provided %d.", options_left);
+    return -1;
   }
 
   if (!strcmp(*options, "client")) {
