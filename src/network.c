@@ -84,37 +84,6 @@
 #include <event2/bufferevent_struct.h>
 #include <event2/listener.h>
 
-/* Terminology used in this file:
-
-   A "connection" is a bidirectional communications channel, usually
-   backed by a network socket, and represented in this layer by a
-   'conn_t', wrapping a 'struct bufferevent'.
-
-   A "circuit" is a _pair_ of connections, referred to as the
-   "upstream" and "downstream" connections.  A circuit is represented
-   by a 'circuit_t'.  The upstream connection of a circuit
-   communicates in cleartext with the higher-level program that wishes
-   to make use of our obfuscation service.  The downstream connection
-   commmunicates in an obfuscated fashion with the remote peer that
-   the higher-level client wishes to contact.
-
-   A "listener" is a listening socket bound to a particular
-   obfuscation protocol, represented in this layer by a 'listener_t'
-   and its 'config_t'.  Connecting to a listener creates one
-   connection of a circuit, and causes this program to initiate the
-   other connection (possibly after receiving in-band instructions
-   about where to connect to).  A listener is said to be a "client"
-   listener if connecting to it creates the _upstream_ connection, and
-   a "server" listener if connecting to it creates the _downstream_
-   connection.
-
-   There are two kinds of client listeners: a "simple" client listener
-   always connects to the same remote peer every time it needs to
-   initiate a downstream connection; a "socks" client listener can be
-   told to connect to an arbitrary remote peer using the SOCKS protocol
-   (version 4 or 5).
-*/
-
 /**
   This struct defines the state of a listener on a particular address.
  */
