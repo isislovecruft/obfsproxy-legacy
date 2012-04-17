@@ -169,8 +169,13 @@ resolve_address_port(const char *address, int nodns, int passive,
   struct evutil_addrinfo *ai = NULL;
   struct evutil_addrinfo ai_hints;
   int ai_res, ai_errno;
-  char *a = xstrdup(address), *cp;
+  char *a, *cp;
   const char *portstr;
+
+  if (!address)
+    return NULL;
+
+  a = xstrdup(address);
 
   if ((cp = strchr(a, ':'))) {
     portstr = cp+1;
