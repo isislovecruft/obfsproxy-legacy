@@ -617,7 +617,6 @@ socks_read_cb(struct bufferevent *bev, void *arg)
       }
 
       bufferevent_setcb(newconn->buffer, downstream_read_cb, NULL, pending_socks_cb, newconn);
-      bufferevent_enable(newconn->buffer, EV_READ|EV_WRITE);
 
       /* further upstream data will be processed once the downstream
          side is established */
