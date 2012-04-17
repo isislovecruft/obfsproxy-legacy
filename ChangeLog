@@ -3,6 +3,8 @@ Changes in version 0.1.4 - <not yet released>
    repository. Fixes bug 5560.
  - Fix assertion failure when connecting to a SOCKS destination. Fixes
    bug #5586.
+ - Fix crash when parsing obfs2 command line arguments. Fixes bug
+   #5141.
 
 
 Changes in version 0.1.3 - 2012-04-03

@@ -167,6 +167,7 @@ int
 parse_and_set_options(int n_options, const char *const *options,
                       obfs2_config_t *cfg)
 {
+  int options_left = n_options;
   int got_dest=0;
   int got_ss=0;
   const char* defport;
@@ -177,66 +178,74 @@ parse_and_set_options(int n_options, const char *const *options,
   }
 
   /* Now parse the optional arguments */
-  while (!strncmp(*options,"--",2)) {
-      if (!strncmp(*options,"--dest=",7)) {
-        if (got_dest)
-          return -1;
-        cfg->target_addr =
-          resolve_address_port(*options+7, 1, 0, NULL);
-        if (!cfg->target_addr)
-          return -1;
-        got_dest=1;
-      } else if (!strncmp(*options,"--shared-secret=",16)) {
-        digest_t *c;
-        if (got_ss)
-          return -1;
-
-        c = digest_new();
-        digest_update(c, (uchar*)*options+16, strlen(*options+16));
-        digest_getdigest(c, cfg->shared_secret, SHARED_SECRET_LENGTH);
-        digest_free(c);
-
-        got_ss=1;
-      } else {
-        log_warn("obfs2: Unknown argument '%s'.", *options);
+  while (options_left && !strncmp(*options,"--",2)) {
+    if (!strncmp(*options,"--dest=",7)) {
+      if (got_dest)
         return -1;
-      }
-      options++;
-    }
+      cfg->target_addr =
+        resolve_address_port(*options+7, 1, 0, NULL);
+      if (!cfg->target_addr)
+        return -1;
+      got_dest=1;
+    } else if (!strncmp(*options,"--shared-secret=",16)) {
+      digest_t *c;
+      if (got_ss)
+        return -1;
 
-    if (!strcmp(*options, "client")) {
-      defport = "48988"; /* bf5c */
-      cfg->mode = LSN_SIMPLE_CLIENT;
-    } else if (!strcmp(*options, "socks")) {
-      defport = "23548"; /* 5bf5 */
-      cfg->mode = LSN_SOCKS_CLIENT;
-    } else if (!strcmp(*options, "server")) {
-      defport = "11253"; /* 2bf5 */
-      cfg->mode = LSN_SIMPLE_SERVER;
+      c = digest_new();
+      digest_update(c, (uchar*)*options+16, strlen(*options+16));
+      digest_getdigest(c, cfg->shared_secret, SHARED_SECRET_LENGTH);
+      digest_free(c);
+
+      got_ss=1;
     } else {
-      log_warn("obfs2: only client/socks/server modes supported.");
+      log_warn("obfs2: Unknown argument '%s'.", *options);
       return -1;
     }
+    options_left--;
     options++;
+  }
 
-    cfg->listen_addr = resolve_address_port(*options, 1, 1, defport);
-    if (!cfg->listen_addr)
-      return -1;
+  /* we still need to parse the mode and the listen address. */
+  if (options_left != 2) {
+    log_warn("obfs2 needs two options (mode, listen address), after its "
+             "optional arguments. You provided %d.", options_left);
+    return -1;
+  }
 
-    /* Validate option selection. */
-    if (got_dest && (cfg->mode == LSN_SOCKS_CLIENT)) {
-      log_warn("obfs2: You can't be on socks mode and have --dest.");
-      return -1;
-    }
+  if (!strcmp(*options, "client")) {
+    defport = "48988"; /* bf5c */
+    cfg->mode = LSN_SIMPLE_CLIENT;
+  } else if (!strcmp(*options, "socks")) {
+    defport = "23548"; /* 5bf5 */
+    cfg->mode = LSN_SOCKS_CLIENT;
+  } else if (!strcmp(*options, "server")) {
+    defport = "11253"; /* 2bf5 */
+    cfg->mode = LSN_SIMPLE_SERVER;
+  } else {
+    log_warn("obfs2: only client/socks/server modes supported.");
+    return -1;
+  }
+  options++;
 
-    if (!got_dest && (cfg->mode != LSN_SOCKS_CLIENT)) {
-      log_warn("obfs2: client/server mode needs --dest.");
-      return -1;
-    }
+  cfg->listen_addr = resolve_address_port(*options, 1, 1, defport);
+  if (!cfg->listen_addr)
+    return -1;
 
-    log_debug("obfs2: Parsed options nicely!");
+  /* Validate option selection. */
+  if (got_dest && (cfg->mode == LSN_SOCKS_CLIENT)) {
+    log_warn("obfs2: You can't be on socks mode and have --dest.");
+    return -1;
+  }
 
-    return 0;
+  if (!got_dest && (cfg->mode != LSN_SOCKS_CLIENT)) {
+    log_warn("obfs2: client/server mode needs --dest.");
+    return -1;
+  }
+
+  log_debug("obfs2: Parsed options nicely!");
+
+  return 0;
 }
 
 
