@@ -41,10 +41,10 @@ if test -n "$PKG_CONFIG"; then
 		AC_MSG_RESULT([yes])
 	else
 		AC_MSG_RESULT([no])
-		PKG_CONFIG=""
+		AC_MSG_ERROR([pkg-config must be at least version $_pkg_min_version.])
 	fi
 else
-    AC_MSG_ERROR([pkg-config not found!])
+	AC_MSG_ERROR([pkg-config not found!])
 fi[]dnl
 ])# PKG_PROG_PKG_CONFIG
 
