@@ -43,6 +43,8 @@ if test -n "$PKG_CONFIG"; then
 		AC_MSG_RESULT([no])
 		PKG_CONFIG=""
 	fi
+else
+    AC_MSG_ERROR([pkg-config not found!])
 fi[]dnl
 ])# PKG_PROG_PKG_CONFIG
 
