@@ -1,4 +1,4 @@
-Changes in version 0.1.4 - <not yet released>
+Changes in version 0.1.4 - 2012-05-02
  - Fix 'obfsproxy --version' when called outside of a git
    repository. Fixes bug 5560.
  - Don't use hardening flags if they'd break the compiler. This happens
