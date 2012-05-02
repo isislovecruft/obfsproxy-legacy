@@ -46,18 +46,19 @@ AC_DEFUN_ONCE([AX_ENABLE_HARDENING], [
 
 ### Compiler Hardening ###
 # This requires ax_check_compile_flag.m4
-AX_CHECK_COMPILE_FLAG([-D_FORTIFY_SOURCE=2], [CFLAGS="$CFLAGS -D_FORTIFY_SOURCE=2"])
-AX_CHECK_COMPILE_FLAG([-fstack-protector-all], [CFLAGS="$CFLAGS -fstack-protector-all"])
-AX_CHECK_COMPILE_FLAG([-fwrapv], [CFLAGS="$CFLAGS -fwrapv"])
-AX_CHECK_COMPILE_FLAG([-fPIE], [CFLAGS="$CFLAGS -fPIE"])
-AX_CHECK_COMPILE_FLAG([--param ssp-buffer-size=1], [CFLAGS="$CFLAGS --param ssp-buffer-size=1"])
-AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing], [CFLAGS="$CFLAGS -fno-strict-aliasing"])
-AX_CHECK_COMPILE_FLAG([-fno-strict-overflow], [CFLAGS="$CFLAGS -fno-strict-overflow"])
+AX_CHECK_COMPILE_FLAG([-D_FORTIFY_SOURCE=2], [CFLAGS="$CFLAGS -D_FORTIFY_SOURCE=2"], [], [-Werror])
+AX_CHECK_COMPILE_FLAG([-fstack-protector-all], [CFLAGS="$CFLAGS -fstack-protector-all"], [], [-Werror])
+AX_CHECK_COMPILE_FLAG([-fwrapv], [CFLAGS="$CFLAGS -fwrapv"], [], [-Werror])
+AX_CHECK_COMPILE_FLAG([-fPIE], [CFLAGS="$CFLAGS -fPIE"], [], [-Werror])
+AX_CHECK_COMPILE_FLAG([--param ssp-buffer-size=1], [CFLAGS="$CFLAGS --param ssp-buffer-size=1"], [], [-Werror])
+AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing], [CFLAGS="$CFLAGS -fno-strict-aliasing"], [], [-Werror])
+AX_CHECK_COMPILE_FLAG([-fno-strict-overflow], [CFLAGS="$CFLAGS -fno-strict-overflow"], [], [-Werror])
 
 ### Linker Hardening ###
 # This requires ax_check_link_flag.m4
-AX_CHECK_LINK_FLAG([-pie], [LDFLAGS="$LDFLAGS -pie"])
-AX_CHECK_LINK_FLAG([-z relro], [LDFLAGS="$LDFLAGS -z relro"])
-AX_CHECK_LINK_FLAG([-z now], [LDFLAGS="$LDFLAGS -z now"])
+AX_CHECK_LINK_FLAG([-pie], [LDFLAGS="$LDFLAGS -pie"], [], [-Werror])
+AX_CHECK_LINK_FLAG([-Wl,-pie], [LDFLAGS="$LDFLAGS -Wl,-pie"], [], [-Werror])
+AX_CHECK_LINK_FLAG([-z relro], [LDFLAGS="$LDFLAGS -z relro"], [], [-Werror])
+AX_CHECK_LINK_FLAG([-z now], [LDFLAGS="$LDFLAGS -z now"], [], [-Werror])
 
 ])

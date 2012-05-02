@@ -1,6 +1,9 @@
 Changes in version 0.1.4 - <not yet released>
  - Fix 'obfsproxy --version' when called outside of a git
    repository. Fixes bug 5560.
+ - Don't use hardening flags if they'd break the compiler. This happens
+   on Windows, for example, where -fPIE causes an error. Fixes bug
+   5665.
  - Fix assertion failure when connecting to a SOCKS destination. Fixes
    bug #5586.
  - Fix crash when parsing obfs2 command line arguments. Fixes bug
